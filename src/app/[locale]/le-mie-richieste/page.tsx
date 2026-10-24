@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import { formatPrice } from "@/lib/pricing";
 import { LessonList } from "@/components/LessonList";
+import { fixedLessonSlots } from "@/lib/booking/validate";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export default async function MyRequestsPage() {
@@ -32,7 +33,7 @@ export default async function MyRequestsPage() {
               </div>
               <p className="mt-1 text-xs text-slate-500">{t("sentOn", { date: formatDateTime(r.createdAt, locale) })}</p>
               <div className="mt-3">
-                <LessonList slots={JSON.parse(r.slotsJson)} locale={locale} />
+                <LessonList slots={JSON.parse(r.slotsJson)} locale={locale} size={fixedLessonSlots(r.package)} />
               </div>
               {r.priceCents != null && (
                 <p className="mt-3 text-sm">

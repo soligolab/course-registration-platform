@@ -3,7 +3,9 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { prisma } from "@/lib/db";
 import { requireAdminPage } from "@/lib/auth";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatShortDay, formatTime } from "@/lib/format";
+import { fixedLessonSlots } from "@/lib/booking/validate";
+import { dayKey } from "@/lib/time";
 import { formatPrice } from "@/lib/pricing";
 import { billingLines, parseBilling } from "@/lib/billing";
 import { CopyButton } from "@/components/CopyButton";
@@ -15,7 +17,25 @@ export default async function AdminRequestPage({ params }: { params: Promise<{ i
   await requireAdminPage();
   const { id } = await params;
   const [req, t, locale] = await Promise.all([
-    prisma.bookingRequest.findUnique({ where: { id }, include: { user: true, package: true } }),
+    prisma.bookingRequest.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        package: true,
+        // lezioni di gruppo: gli altri iscritti e i posti
+        seats: {
+          include: {
+            lesson: {
+              include: {
+                package: { select: { maxParticipants: true } },
+                seats: { include: { request: { select: { id: true, user: { select: { firstName: true, lastName: true, email: true } } } } } },
+              },
+            },
+          },
+          orderBy: { lesson: { startAt: "asc" } },
+        },
+      },
+    }),
     getTranslations("admin.requests"),
     getLocale(),
   ]);
@@ -23,6 +43,7 @@ export default async function AdminRequestPage({ params }: { params: Promise<{ i
   const u = req.user;
   // la copia salvata con la richiesta; per richieste precedenti alla funzione, i dati attuali
   const billing = parseBilling(req.billingJson) ?? parseBilling(u.billingJson);
+  const groupSeats = req.seats.filter((x) => x.lesson.package.maxParticipants > 1);
   const lines = billing ? billingLines(billing, { taxCode: t("taxCode"), vat: t("vat"), sdi: t("sdi"), pec: "PEC" }) : [];
 
   return (
@@ -57,7 +78,39 @@ export default async function AdminRequestPage({ params }: { params: Promise<{ i
         </div>
         <div className="card">
           <h2 className="mb-2 font-semibold">{locale === "en" ? req.package.nameEn : req.package.nameIt}</h2>
-          <LessonList slots={JSON.parse(req.slotsJson)} locale={locale} />
+          <LessonList slots={JSON.parse(req.slotsJson)} locale={locale} size={fixedLessonSlots(req.package)} />
+          {groupSeats.length > 0 && (
+            <div className="mt-3 border-t border-slate-100 pt-3 text-sm">
+              <h3 className="mb-1 font-medium">{t("groupLessons")}</h3>
+              <ul className="space-y-1">
+                {groupSeats.map(({ lesson }) => {
+                  const others = lesson.seats.filter((x) => x.request.id !== req.id).map((x) => x.request);
+                  return (
+                    <li key={lesson.id}>
+                      <span className="first-letter:uppercase">
+                        {formatShortDay(dayKey(lesson.startAt), locale)} {formatTime(lesson.startAt.toISOString(), locale)}
+                      </span>{" "}
+                      · {t("groupCount", { n: lesson.seats.length, max: lesson.package.maxParticipants })}
+                      {others.length > 0 && (
+                        <span className="text-slate-500">
+                          {" "}
+                          ·{" "}
+                          {others.map((o, i) => (
+                            <span key={o.id}>
+                              {i > 0 && ", "}
+                              <Link href={`/admin/richieste/${o.id}`} className="text-brand-600 hover:underline">
+                                {`${o.user.firstName ?? ""} ${o.user.lastName ?? ""}`.trim() || o.user.email}
+                              </Link>
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
           {req.priceCents != null && (
             <p className="mt-3 border-t border-slate-100 pt-3 text-sm">
               {t("price")}: <span className="font-semibold">{formatPrice(req.priceCents, locale)}</span>

@@ -33,8 +33,9 @@ server (`corsi-deploy.md` nel progetto di manutenzione), in `.deploy.env` e in `
 | 10-24 | Corretto: al ritorno da login/profilo l'invio automatico della richiesta restava appeso su "Invio in corso…" (partiva mentre si caricava il calendario) |
 | 10-24 | README riscritto (sviluppo su Linux, niente Windows; contenuti aggiornati) |
 | 10-24 | **Pagina del corso** (`/corso/<id>`, pulsante *Esplora* nella home) con descrizione completa scritta in un editor visuale: titoli, stili, immagini della galleria, due colonne; HTML ripulito sul server. Migrazione `package_details` |
+| 10-24 | **Lezioni di gruppo** (max partecipanti per pacchetto, gruppi di pacchetti che condividono le lezioni, posti liberi nel calendario) e **fasce orarie settimanali** per corso; lezioni consecutive permesse. Migrazione `group_lessons` (converte le prenotazioni esistenti) |
 
-Test: 34 (regole di prenotazione, tariffario, tema, fatturazione, pulizia dell'HTML delle descrizioni). Ogni deploy li esegue.
+Test: 58 (regole di prenotazione con lezioni di gruppo e fasce orarie, tariffario, tema, fatturazione, pulizia dell'HTML delle descrizioni). Ogni deploy li esegue.
 
 ## Da fare
 
@@ -57,8 +58,6 @@ Test: 34 (regole di prenotazione, tariffario, tema, fatturazione, pulizia dell'H
 - Rileggere l'informativa con un consulente (base giuridica, conservazione, terzo intestatario).
 - La disponibilità si apre a caselle da 15 minuti: valutare la selezione di una fascia
   (trascinamento o "dalle… alle…") per renderla più rapida.
-- Due lezioni consecutive nello stesso giorno vengono unite in una sola e rifiutate come
-  "troppo lunga": comportamento voluto o da gestire?
 - `docs/PLAN.md` è il piano iniziale: aggiornarlo o archiviarlo.
 
 ## Come riprendere

@@ -7,9 +7,24 @@ import { useRouter } from "@/i18n/routing";
 import { deletePackage, savePackage, type FormState } from "@/app/actions/admin";
 import { MediaPicker } from "@/components/MediaPicker";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { parseTimeWindows } from "@/lib/packages";
+import { TimeWindowsEditor } from "./TimeWindowsEditor";
 import { formatDuration, formatPrice, packageLessons, type Rate } from "@/lib/pricing";
 
-export function PackageForm({ pkg, rates, locale }: { pkg: Package | null; rates: Rate[]; locale: string }) {
+export function PackageForm({
+  pkg,
+  rates,
+  locale,
+  groups,
+  dayRange,
+}: {
+  pkg: Package | null;
+  rates: Rate[];
+  locale: string;
+  /** gruppi già usati da altri pacchetti, suggeriti nel campo */
+  groups: string[];
+  dayRange: [string, string];
+}) {
   const t = useTranslations("admin.packages");
   const router = useRouter();
   const [state, action, pending] = useActionState<FormState, FormData>(savePackage, {});
@@ -117,6 +132,25 @@ export function PackageForm({ pkg, rates, locale }: { pkg: Package | null; rates
           <span className="text-amber-700">{t("noRate")}</span>
         )}
       </p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          {field("maxParticipants", "number", pkg?.maxParticipants ?? 1, { min: 1, max: 100, required: true })}
+          <p className="mt-1 text-xs text-slate-500">{t("maxParticipantsHint")}</p>
+        </div>
+        <div>
+          {field("groupKey", "text", pkg?.groupKey, { maxLength: 60, list: "package-groups" })}
+          <datalist id="package-groups">
+            {groups.map((g) => (
+              <option key={g} value={g} />
+            ))}
+          </datalist>
+          <p className="mt-1 text-xs text-slate-500">{t("groupKeyHint")}</p>
+        </div>
+      </div>
+      <fieldset className="rounded-lg border border-slate-200 p-4">
+        <legend className="px-1 text-sm font-semibold">{t("windows.title")}</legend>
+        <TimeWindowsEditor initial={parseTimeWindows(pkg?.timeWindowsJson)} dayRange={dayRange} />
+      </fieldset>
       <div className="grid gap-4 sm:grid-cols-3">
         {field("validityDays", "number", pkg?.validityDays ?? 31, { min: 1, required: true })}
         {field("maxLessonsPerWeek", "number", pkg?.maxLessonsPerWeek, { min: 1 })}

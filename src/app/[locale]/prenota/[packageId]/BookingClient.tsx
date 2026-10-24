@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import { getFreeMonth, submitBooking } from "@/app/actions/booking";
-import { validateSelection, type PackageRules, type ValidationError } from "@/lib/booking/validate";
+import { getBookableMonth, submitBooking, type BookableMonth } from "@/app/actions/booking";
+import { inTimeWindows, validateSelection, type PackageRules, type ValidationError } from "@/lib/booking/validate";
 import { packageLessons } from "@/lib/pricing";
 import { SLOT_MINUTES, SLOT_MS, addMonths, dayKey } from "@/lib/time";
 import { formatDay, formatShortDay, formatTime, lessonEnd } from "@/lib/format";
@@ -12,7 +12,7 @@ import { MonthCalendar } from "@/components/MonthCalendar";
 import { ErrorList, useErrorMessage } from "@/components/ErrorList";
 
 type Props = {
-  pkg: PackageRules & { id: string };
+  pkg: PackageRules & { id: string; maxParticipants: number };
   initialMonth: string;
   loggedIn: boolean;
   profileComplete: boolean;
@@ -28,7 +28,7 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
   const errorMessage = useErrorMessage();
 
   const [month, setMonth] = useState(initialMonth);
-  const [free, setFree] = useState<Record<string, string[]>>({});
+  const [free, setFree] = useState<Record<string, BookableMonth>>({});
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [day, setDay] = useState<string | null>(null);
@@ -58,12 +58,12 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
   const loadMonth = useCallback(async (m: string) => {
     setLoading(true);
     try {
-      const slots = await getFreeMonth(m);
-      setFree((f) => ({ ...f, [m]: slots }));
+      const data = await getBookableMonth(pkg.id, m);
+      setFree((f) => ({ ...f, [m]: data }));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pkg.id]);
 
   useEffect(() => {
     if (!(month in free)) loadMonth(month);
@@ -71,28 +71,53 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
 
   const freeByDay = useMemo(() => {
     const map = new Map<string, string[]>();
-    for (const s of free[month] ?? []) {
+    for (const s of free[month]?.free ?? []) {
       const d = dayKey(s);
       map.set(d, [...(map.get(d) ?? []), s]);
     }
     return map;
   }, [free, month]);
 
+  // lezioni di gruppo già fissate con posti liberi: si scelgono per intero
+  const joinable = useMemo(() => Object.values(free).flatMap((m) => m.joinable), [free]);
+  const joinableByDay = useMemo(() => {
+    const map = new Map<string, typeof joinable>();
+    for (const j of free[month]?.joinable ?? []) map.set(dayKey(j.start), [...(map.get(dayKey(j.start)) ?? []), j]);
+    return map;
+  }, [free, month]);
+  const lessonSlots = (j: { start: string; slotCount: number }) =>
+    Array.from({ length: j.slotCount }, (_, i) => new Date(Date.parse(j.start) + i * SLOT_MS).toISOString());
+
   const selectedSet = useMemo(() => new Set(selected), [selected]);
   const selectedDays = useMemo(() => new Set(selected.map(dayKey)), [selected]);
 
-  const validation = useMemo(() => validateSelection(pkg, selected), [pkg, selected]);
+  const validation = useMemo(() => validateSelection(pkg, selected, undefined, joinable), [pkg, selected, joinable]);
   const liveErrors = validation.errors.filter((e) => e.code !== "COUNT_MISMATCH");
   const complete = selected.length === pkg.totalSlots && validation.ok;
 
   // Si seleziona per blocchi di `lessonStepSlots` slot a partire dall'orario cliccato (inizio ogni SLOT_MINUTES).
   const step = Math.max(1, pkg.lessonStepSlots);
   const fixedLessons = packageLessons(pkg);
-  const freeSet = useMemo(() => new Set(Object.values(free).flat()), [free]);
+  const freeSet = useMemo(() => new Set(Object.values(free).flatMap((m) => m.free)), [free]);
   const blockFrom = (slot: string) =>
     Array.from({ length: step }, (_, i) => new Date(Date.parse(slot) + i * SLOT_MS).toISOString());
-  const canStartBlock = (slot: string) =>
-    selected.length + step <= pkg.totalSlots && blockFrom(slot).every((s) => freeSet.has(s) && !selectedSet.has(s));
+  const canStartBlock = (slot: string) => {
+    const block = blockFrom(slot);
+    return (
+      selected.length + step <= pkg.totalSlots &&
+      block.every((s) => freeSet.has(s) && !selectedSet.has(s)) &&
+      inTimeWindows({ day: dayKey(slot), start: slot, slots: block }, pkg.timeWindows)
+    );
+  };
+
+  function toggleJoin(j: { start: string; slotCount: number }) {
+    setServerErrors([]);
+    setServerMessage(null);
+    const slots = lessonSlots(j);
+    if (slots.every((s) => selectedSet.has(s))) setSelected((cur) => cur.filter((s) => !slots.includes(s)));
+    else if (selected.length + slots.length <= pkg.totalSlots && !slots.some((s) => selectedSet.has(s)))
+      setSelected((cur) => [...cur, ...slots].sort());
+  }
 
   function toggle(slot: string) {
     setServerErrors([]);
@@ -153,7 +178,18 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
   }
 
   const today = dayKey(new Date());
-  const daySlots = day ? [...new Set([...(freeByDay.get(day) ?? []), ...selected.filter((s) => dayKey(s) === day)])].sort() : [];
+  const dayJoinable = day ? (joinableByDay.get(day) ?? []) : [];
+  const joinedSlots = new Set(dayJoinable.flatMap(lessonSlots));
+  const daySlots = day
+    ? [...new Set([...(freeByDay.get(day) ?? []), ...selected.filter((s) => dayKey(s) === day && !joinedSlots.has(s))])].sort()
+    : [];
+  // orari liberi e lezioni di gruppo, in ordine di orario
+  type DayItem = { at: string; slot?: string; join?: (typeof dayJoinable)[number] };
+  const dayItems: DayItem[] = [
+    ...daySlots.map((s) => ({ at: s, slot: s })),
+    ...dayJoinable.map((j) => ({ at: j.start, join: j })),
+  ].sort((a, b) => a.at.localeCompare(b.at));
+  const group = pkg.maxParticipants > 1;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
@@ -169,7 +205,7 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
           onSelectDay={setDay}
           loading={loading}
           dayState={(d) => {
-            const hasFree = freeByDay.has(d);
+            const hasFree = freeByDay.has(d) || joinableByDay.has(d);
             const hasSel = selectedDays.has(d);
             return {
               disabled: d < today || (!hasFree && !hasSel),
@@ -181,6 +217,11 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
           <span className="flex items-center gap-1">
             <span className="h-3 w-3 rounded bg-emerald-100" /> {t("legendFree")}
           </span>
+          {(group || joinable.length > 0) && (
+            <span className="flex items-center gap-1">
+              <span className="h-3 w-3 rounded border border-accent-500 bg-accent-100" /> {t("legendGroup")}
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <span className="h-3 w-3 rounded bg-brand-600" /> {t("legendSelected")}
           </span>
@@ -192,12 +233,40 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
           ) : (
             <>
               <h3 className="font-semibold first-letter:uppercase">{t("slotsOf", { date: formatDay(day, locale) })}</h3>
-              <p className="mb-3 text-xs text-slate-500">{t("blockHint", { minutes: step * SLOT_MINUTES })}</p>
-              {daySlots.length === 0 ? (
+              <p className="mb-3 text-xs text-slate-500">
+                {t("blockHint", { minutes: step * SLOT_MINUTES })}
+                {group && <> {t("groupHint", { n: pkg.maxParticipants })}</>}
+              </p>
+              {dayItems.length === 0 ? (
                 <p className="text-sm text-slate-500">{t("noSlots")}</p>
               ) : (
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                  {daySlots.map((s) => {
+                  {dayItems.map((item) => {
+                    if (item.join) {
+                      const j = item.join;
+                      const isSel = lessonSlots(j).every((s) => selectedSet.has(s));
+                      const blocked = !isSel && selected.length + j.slotCount > pkg.totalSlots;
+                      const end = new Date(Date.parse(j.start) + j.slotCount * SLOT_MS);
+                      return (
+                        <button
+                          key={`j-${j.start}`}
+                          type="button"
+                          disabled={blocked}
+                          onClick={() => toggleJoin(j)}
+                          className={`col-span-2 rounded-lg border px-2 py-1.5 text-left text-sm font-medium transition ${
+                            isSel
+                              ? "border-brand-600 bg-brand-600 text-white"
+                              : "border-accent-500 bg-accent-100 text-slate-900 hover:bg-accent-200 disabled:cursor-not-allowed disabled:opacity-50"
+                          }`}
+                        >
+                          {formatTime(j.start, locale)}–{formatTime(end, locale)}
+                          <span className={`block text-xs font-normal ${isSel ? "text-white/90" : "text-slate-600"}`}>
+                            {t("groupSeats", { n: j.seatsLeft })}
+                          </span>
+                        </button>
+                      );
+                    }
+                    const s = item.slot!;
                     const isSel = selectedSet.has(s);
                     const blocked = !isSel && !canStartBlock(s);
                     return (
@@ -249,6 +318,7 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
                   <button type="button" className="text-left first-letter:uppercase hover:underline" onClick={() => setDay(l.day)}>
                     {formatShortDay(l.day, locale)} {formatTime(l.start, locale)}–
                     {formatTime(lessonEnd(l.slots[l.slots.length - 1]), locale)}
+                    {l.joined && <span className="ml-1.5 rounded bg-accent-100 px-1 text-xs text-slate-700">{t("groupBadge")}</span>}
                   </button>
                   <button
                     type="button"

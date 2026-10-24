@@ -7,6 +7,7 @@ import { monthKey } from "@/lib/time";
 import { PackageFacts } from "@/components/PackageFacts";
 import { formatPrice, packagePrice } from "@/lib/pricing";
 import { getRates } from "@/lib/settings";
+import { parseTimeWindows } from "@/lib/packages";
 import { BookingClient } from "./BookingClient";
 
 export default async function BookPage({
@@ -65,6 +66,8 @@ export default async function BookPage({
           lessonStepSlots: pkg.lessonStepSlots,
           validityDays: pkg.validityDays,
           maxLessonsPerWeek: pkg.maxLessonsPerWeek,
+          timeWindows: parseTimeWindows(pkg.timeWindowsJson),
+          maxParticipants: pkg.maxParticipants,
         }}
         initialMonth={monthKey(new Date())}
         loggedIn={Boolean(user)}

@@ -3,7 +3,12 @@ import type { Package } from "@prisma/client";
 import { formatDuration, packageLessons } from "@/lib/pricing";
 import { SLOT_MINUTES } from "@/lib/time";
 
-export function PackageFacts({ pkg }: { pkg: Pick<Package, "totalSlots" | "minLessonSlots" | "maxLessonSlots" | "lessonStepSlots" | "validityDays" | "maxLessonsPerWeek"> }) {
+export function PackageFacts({
+  pkg,
+}: {
+  pkg: Pick<Package, "totalSlots" | "minLessonSlots" | "maxLessonSlots" | "lessonStepSlots" | "validityDays" | "maxLessonsPerWeek"> &
+    Partial<Pick<Package, "maxParticipants">>;
+}) {
   const t = useTranslations("pkg");
   const fixed = packageLessons(pkg);
   const min = pkg.minLessonSlots * SLOT_MINUTES;
@@ -16,6 +21,7 @@ export function PackageFacts({ pkg }: { pkg: Pick<Package, "totalSlots" | "minLe
       {!fixed && pkg.lessonStepSlots > 1 && <li>{t("step", { step: pkg.lessonStepSlots * SLOT_MINUTES })}</li>}
       <li>{t("validity", { days: pkg.validityDays })}</li>
       {pkg.maxLessonsPerWeek != null && <li>{t("perWeek", { n: pkg.maxLessonsPerWeek })}</li>}
+      {(pkg.maxParticipants ?? 1) > 1 && <li>{t("participants", { n: pkg.maxParticipants! })}</li>}
     </ul>
   );
 }

@@ -28,7 +28,8 @@
     "step": "Lezioni a blocchi di {step} minuti",
     "validity": "Da svolgere entro {days} giorni",
     "perWeek": "Massimo {n, plural, one {# lezione} other {# lezioni}} a settimana",
-    "lessons": "{n, plural, one {# lezione} other {# lezioni}} da {duration}"
+    "lessons": "{n, plural, one {# lezione} other {# lezioni}} da {duration}",
+    "participants": "Fino a {n} partecipanti per lezione"
   },
   "calendar": {
     "prev": "Mese precedente",
@@ -59,6 +60,10 @@
     "loading": "Caricamento…",
     "legendFree": "Giorni con orari liberi",
     "legendSelected": "Giorni con orari selezionati",
+    "legendGroup": "Lezioni di gruppo con posti liberi",
+    "groupHint": "Lezioni di gruppo: fino a {n} partecipanti.",
+    "groupSeats": "{n, plural, one {# posto libero} other {# posti liberi}}",
+    "groupBadge": "di gruppo",
     "remove": "Rimuovi",
     "counterLessons": "Lezioni scelte: {selected, number} su {required, number}"
   },
@@ -66,12 +71,14 @@
     "DUPLICATE_SLOT": "Orario selezionato più volte ({time}).",
     "COUNT_MISMATCH": "Devi prenotare in tutto {required} minuti di lezione (ora {selected}).",
     "LESSON_TOO_SHORT": "La lezione del {day} alle {time} è troppo corta: minimo {min} minuti.",
-    "LESSON_TOO_LONG": "La lezione del {day} alle {time} è troppo lunga: massimo {max} minuti. Due lezioni attaccate contano come una sola.",
+    "LESSON_TOO_LONG": "La lezione del {day} alle {time} è troppo lunga: massimo {max} minuti.",
     "LESSON_STEP": "La lezione del {day} alle {time} deve durare un multiplo di {step} minuti.",
     "OUTSIDE_VALIDITY": "Tutte le lezioni devono essere comprese in {days} giorni dalla prima.",
     "TOO_MANY_PER_WEEK": "Troppe lezioni nella settimana del {day}: massimo {max}.",
     "SLOT_UNAVAILABLE": "L'orario del {day} alle {time} non è più disponibile.",
     "SLOT_TAKEN": "Uno degli orari è stato appena prenotato da un altro utente. Aggiorna la selezione.",
+    "OUTSIDE_WINDOW": "La lezione del {day} alle {time} è fuori dalle fasce orarie del corso.",
+    "LESSON_FULL": "Una delle lezioni di gruppo si è appena riempita. Aggiorna la selezione.",
     "UNAUTHENTICATED": "Devi accedere per continuare.",
     "PROFILE_INCOMPLETE": "Completa il tuo profilo per continuare.",
     "INVALID_INPUT": "Dati non validi.",
@@ -213,7 +220,9 @@
       "noBilling": "Il cliente non ha inserito i dati di fatturazione.",
       "taxCode": "Codice fiscale",
       "vat": "Partita IVA",
-      "sdi": "Codice SDI"
+      "sdi": "Codice SDI",
+      "groupLessons": "Lezioni di gruppo",
+      "groupCount": "{n} su {max} iscritti"
     },
     "availability": {
       "title": "Disponibilità",
@@ -280,6 +289,20 @@
       },
       "validityDays": "Validità (giorni tra prima e ultima lezione)",
       "maxLessonsPerWeek": "Max lezioni a settimana (vuoto = nessun limite)",
+      "maxParticipants": "Partecipanti massimi per lezione",
+      "maxParticipantsHint": "1 = lezioni individuali. Con più posti, il primo cliente fissa la lezione e gli altri possono unirsi finché ci sono posti.",
+      "groupKey": "Gruppo (facoltativo)",
+      "groupKeyHint": "Pacchetti con lo stesso gruppo e la stessa durata di lezione condividono le lezioni di gruppo (es. “4 ore” e “8 ore” dello stesso corso). Conviene dare a tutti lo stesso numero di posti.",
+      "windows": {
+        "title": "Fasce orarie del corso",
+        "none": "Nessuna fascia: il corso si può prenotare in tutta la disponibilità.",
+        "weekday": "Giorno",
+        "from": "dalle",
+        "to": "alle",
+        "remove": "Togli",
+        "add": "+ Aggiungi fascia",
+        "hint": "Le lezioni devono stare tutte dentro una fascia e dentro la disponibilità impostata nel calendario."
+      },
       "sortOrder": "Ordine",
       "active": "Attivo (visibile ai clienti)",
       "save": "Salva",

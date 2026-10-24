@@ -11,14 +11,20 @@ import { MAX_DETAILS_LENGTH, sanitizeRichHtml } from "@/lib/rich-text";
 import { getRates, getSettings, saveRates, saveSettings, SETTING_DEFAULTS, type Settings } from "@/lib/settings";
 import { themeSchema, type Theme } from "@/lib/theme";
 import { saveTheme } from "@/lib/theme-server";
+import { deleteEmptyLessons } from "@/lib/availability";
+import { timeWindowsSchema } from "@/lib/packages";
 import { SLOT_MINUTES, addMonths, daysInMonth, monthKey, monthRange, slotsForDay, weekdayIndex, zonedInstant } from "@/lib/time";
 
 /* ---------- Disponibilità ---------- */
 
 export type AdminMonth = {
   available: string[];
-  booked: { startAt: string; requestId: string; name: string; status: string }[];
+  /** slot occupati da lezioni: name elenca i partecipanti (con i posti, se di gruppo) */
+  booked: { startAt: string; lessonId: string; name: string }[];
 };
+
+const userName = (u: { firstName: string | null; lastName: string | null; email: string }) =>
+  `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email;
 
 export async function getAdminMonth(month: string): Promise<AdminMonth> {
   await requireAdmin();
@@ -27,17 +33,23 @@ export async function getAdminMonth(month: string): Promise<AdminMonth> {
     prisma.availabilitySlot.findMany({ where: { startAt: { gte: start, lt: end } } }),
     prisma.bookedSlot.findMany({
       where: { startAt: { gte: start, lt: end } },
-      include: { request: { include: { user: true } } },
+      include: {
+        lesson: {
+          include: {
+            package: { select: { maxParticipants: true } },
+            seats: { orderBy: { seat: "asc" }, include: { request: { include: { user: true } } } },
+          },
+        },
+      },
     }),
   ]);
   return {
     available: available.map((a) => a.startAt.toISOString()),
-    booked: booked.map((b) => ({
-      startAt: b.startAt.toISOString(),
-      requestId: b.requestId,
-      name: `${b.request.user.firstName ?? ""} ${b.request.user.lastName ?? ""}`.trim() || b.request.user.email,
-      status: b.request.status,
-    })),
+    booked: booked.map(({ startAt, lesson }) => {
+      const names = lesson.seats.map((x) => userName(x.request.user)).join(", ");
+      const max = lesson.package.maxParticipants;
+      return { startAt: startAt.toISOString(), lessonId: lesson.id, name: max > 1 ? `${names} (${lesson.seats.length}/${max})` : names };
+    }),
   };
 }
 
@@ -105,6 +117,19 @@ const packageSchema = z.object({
   sortOrder: z.coerce.number().int().default(0),
   active: z.string().optional(),
   imageUrl: themeSchema.shape.logoUrl.default(""),
+  maxParticipants: z.coerce.number().int().min(1).max(100).default(1),
+  groupKey: z.string().trim().max(60).default(""),
+  timeWindowsJson: z
+    .string()
+    .default("[]")
+    .transform((s, ctx) => {
+      try {
+        return timeWindowsSchema.parse(JSON.parse(s));
+      } catch {
+        ctx.addIssue({ code: z.ZodIssueCode.custom });
+        return z.NEVER;
+      }
+    }),
 });
 
 export type FormState = { ok?: boolean; errors?: string[] };
@@ -132,6 +157,9 @@ export async function savePackage(_prev: FormState, form: FormData): Promise<For
     sortOrder: v.sortOrder,
     active: v.active === "on",
     imageUrl: v.imageUrl,
+    maxParticipants: v.maxParticipants,
+    groupKey: v.groupKey,
+    timeWindowsJson: JSON.stringify(v.timeWindowsJson),
   };
   if (v.id) await prisma.package.update({ where: { id: v.id }, data });
   else await prisma.package.create({ data });
@@ -147,6 +175,7 @@ export async function deletePackage(id: string): Promise<{ ok: boolean; deactiva
     revalidatePath("/", "layout");
     return { ok: true, deactivated: true };
   }
+  await deleteEmptyLessons();
   await prisma.package.delete({ where: { id } });
   revalidatePath("/", "layout");
   return { ok: true };
@@ -171,11 +200,14 @@ export async function updateRequestStatus(
   if (!req) return { ok: false, error: "NOT_FOUND" };
   if (!ALLOWED[req.status]?.includes(status)) return { ok: false, error: "INVALID_TRANSITION" };
 
-  await prisma.$transaction([
-    prisma.bookingRequest.update({ where: { id }, data: { status } }),
-    // rifiuto/annullamento liberano gli slot
-    ...(status === "CONFIRMED" ? [] : [prisma.bookedSlot.deleteMany({ where: { requestId: id } })]),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await tx.bookingRequest.update({ where: { id }, data: { status } });
+    // rifiuto/annullamento liberano i posti; una lezione senza più partecipanti libera l'orario
+    if (status !== "CONFIRMED") {
+      await tx.seat.deleteMany({ where: { requestId: id } });
+      await deleteEmptyLessons(tx);
+    }
+  });
 
   if (notify) {
     try {
@@ -200,7 +232,10 @@ export async function deleteClient(id: string): Promise<{ ok: boolean; error?: s
   const admin = await requireAdmin();
   if (admin.id === id) return { ok: false, error: "SELF" };
   try {
-    await prisma.user.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.user.delete({ where: { id } });
+      await deleteEmptyLessons(tx);
+    });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) return { ok: false, error: e.code };
     throw e;

@@ -18,5 +18,6 @@
       "Read(./.env)",
       "Read(./data/**)"
     ]
-  }
+  },
+  "plansDirectory": ".claude/plans"
 }

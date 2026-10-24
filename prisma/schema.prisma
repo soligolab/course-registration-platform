@@ -59,7 +59,7 @@ model Package {
   descriptionEn     String           @default("") // riassunto in testo semplice, nella scheda della home
   detailsIt         String           @default("") // descrizione completa in HTML (sanificato), nella pagina del corso
   detailsEn         String           @default("")
-  totalSlots        Int // unità da 30 minuti
+  totalSlots        Int // unità da SLOT_MINUTES (15 minuti)
   minLessonSlots    Int
   maxLessonSlots    Int
   lessonStepSlots   Int              @default(1) // ogni lezione dura un multiplo di questo blocco
@@ -68,8 +68,12 @@ model Package {
   active            Boolean          @default(true)
   sortOrder         Int              @default(0)
   imageUrl          String           @default("") // /presets/… o /media/…
+  maxParticipants   Int              @default(1) // partecipanti per lezione: > 1 = lezioni di gruppo
+  groupKey          String           @default("") // pacchetti con lo stesso gruppo e la stessa durata condividono le lezioni
+  timeWindowsJson   String           @default("[]") // fasce settimanali [{ weekday 1-7, from, to }]; vuoto = tutta la disponibilità
   createdAt         DateTime         @default(now())
   requests          BookingRequest[]
+  lessons           Lesson[]
 }
 
 model AvailabilitySlot {
@@ -94,14 +98,41 @@ model BookingRequest {
   billingJson String?
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
-  slots      BookedSlot[]
+  seats      Seat[]
 }
 
+/// Lezione fissata dal primo cliente che la prenota; altri clienti dello stesso gruppo possono occupare i posti liberi.
+model Lesson {
+  id        String       @id @default(cuid())
+  packageId String
+  package   Package      @relation(fields: [packageId], references: [id])
+  startAt   DateTime
+  slotCount Int
+  createdAt DateTime     @default(now())
+  slots     BookedSlot[]
+  seats     Seat[]
+}
+
+/// Slot occupati dalle lezioni: startAt unique impedisce sovrapposizioni tra lezioni, di qualsiasi corso.
 model BookedSlot {
+  id       String   @id @default(cuid())
+  lessonId String
+  lesson   Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  startAt  DateTime @unique
+}
+
+/// Posto di una richiesta in una lezione: (lessonId, seat) unique impedisce di superare il massimo.
+model Seat {
   id        String         @id @default(cuid())
+  lessonId  String
+  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   requestId String
   request   BookingRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  startAt   DateTime       @unique
+  seat      Int
+
+  @@unique([lessonId, seat])
+  @@unique([lessonId, requestId])
+  @@index([requestId])
 }
 
 model Setting {

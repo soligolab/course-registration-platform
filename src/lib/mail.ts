@@ -2,7 +2,7 @@ import "server-only";
 import nodemailer from "nodemailer";
 import type { BookingRequest, Package, User } from "@prisma/client";
 import { formatInTimeZone } from "date-fns-tz";
-import { groupLessons } from "@/lib/booking/validate";
+import { fixedLessonSlots, groupLessons } from "@/lib/booking/validate";
 import { billingLines, parseBilling } from "@/lib/billing";
 import { formatPrice } from "@/lib/pricing";
 import { SLOT_MS, TZ } from "@/lib/time";
@@ -36,9 +36,9 @@ function esc(s: string) {
 }
 
 /** Elenco leggibile delle lezioni, es. "lun 02/11/2026 10:00–12:00". */
-export function formatLessons(slotsIso: string[], locale: Locale): string {
+export function formatLessons(slotsIso: string[], locale: Locale, size?: number): string {
   const dateFmt = locale === "it" ? "EEE dd/MM/yyyy HH:mm" : "EEE yyyy-MM-dd HH:mm";
-  return groupLessons(slotsIso)
+  return groupLessons(slotsIso, size)
     .map((l) => {
       const end = new Date(Date.parse(l.slots[l.slots.length - 1]) + SLOT_MS);
       return `- ${formatInTimeZone(new Date(l.start), TZ, dateFmt)}–${formatInTimeZone(end, TZ, "HH:mm")}`;
@@ -97,7 +97,7 @@ export async function sendBookingEmails(opts: {
     t.clientBody(
       esc(user.firstName ?? ""),
       pkgName(pkg, l),
-      formatLessons(slots, l),
+      formatLessons(slots, l, fixedLessonSlots(pkg)),
       request.priceCents == null ? null : formatPrice(request.priceCents, l),
     ),
   );
@@ -115,7 +115,7 @@ export async function sendBookingEmails(opts: {
       `Pacchetto: ${pkg.nameIt}`,
       ``,
       `Date richieste:`,
-      formatLessons(slots, "it"),
+      formatLessons(slots, "it", fixedLessonSlots(pkg)),
       request.priceCents == null ? null : `\nTotale indicativo: ${formatPrice(request.priceCents, "it")}`,
       billing ? `\nDati per la fattura:\n${billingLines(billing, { taxCode: "Codice fiscale", vat: "Partita IVA", sdi: "Codice SDI", pec: "PEC" }).join("\n")}` : null,
       request.userNotes ? `\nNote del cliente:\n${request.userNotes}` : null,

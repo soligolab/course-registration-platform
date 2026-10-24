@@ -33,6 +33,8 @@
 | Immagini | Logo, banner e immagine per pacchetto: esempi in `public/presets/` o caricate (PNG/JPG/WebP/GIF ≤ 5 MB, niente SVG) in `UPLOAD_DIR`, servite da `/media/…` |
 | Pacchetti ricorrenti | L'utente seleziona a mano ogni data; il sistema valida i vincoli |
 | Blocco slot | Le richieste in attesa bloccano subito gli slot; rifiuto/annullamento li liberano |
+| Lezioni di gruppo | `Package.maxParticipants` (1 = individuale). Il primo cliente che prenota una lezione la fissa (`Lesson`): l'orario è occupato per tutti, nessuna lezione può sovrapporsi. Altri clienti dello stesso pacchetto, o di un pacchetto con lo stesso `groupKey` e la stessa durata, si uniscono alla lezione intera (`Seat`) finché ci sono posti; il massimo è quello del pacchetto che l'ha fissata. Nel calendario le lezioni con posti liberi compaiono come pulsanti a parte ("2 posti liberi"); il cliente non vede chi partecipa. Una lezione resta finché ha almeno un partecipante |
+| Fasce orarie del corso | `Package.timeWindowsJson`: fasce settimanali (giorno + dalle/alle, ora di Roma) dentro la disponibilità generale. Una lezione nuova deve stare tutta in una fascia; nessuna fascia = sempre. Le iscrizioni a lezioni già fissate non sono vincolate alle fasce |
 | Accesso admin | Email + codice OTP; il primo utente diventa admin (o `ADMIN_EMAIL` se impostata) |
 | Più amministratori | Gestiti da *Impostazioni → Amministratori*: tutti con gli stessi poteri, si aggiungono per email (anche prima che si registrino), nessuno può togliersi da solo, quindi ne resta sempre almeno uno. Le notifiche di nuova richiesta vanno a **tutti** gli admin, più l'eventuale email aggiuntiva delle impostazioni |
 | Lingue | Italiano (default) + inglese |
@@ -40,7 +42,7 @@
 
 ## Modello a slot
 - Unità: slot da **15 minuti** (`SLOT_MINUTES`), ora di Roma (DB in UTC). Fino al 2026-10-23 erano 30: la migrazione `slots_15min` ha raddoppiato i conteggi.
-- Una "lezione" = slot consecutivi nello stesso giorno.
+- Una "lezione" = slot consecutivi nello stesso giorno; con durata fissa (min = max) una sequenza più lunga sono più lezioni attaccate, permesse.
 - Ogni pacchetto ha un "blocco lezione" (`lessonStepSlots`, es. 4 = 1 ora) e oggi min = max = blocco: un clic nel calendario seleziona una lezione intera, con inizio ogni 15 minuti.
 - Pacchetti base (seed): "4 ore al mese" = 4 × 1 h (`totalSlots=16, min=max=step=4`), "8 ore al mese" = 8 × 1 h, "8 lezioni da 45 minuti" (`totalSlots=24, min=max=step=3`), tutti `validityDays=31`.
 

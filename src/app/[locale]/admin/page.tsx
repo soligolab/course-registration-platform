@@ -5,6 +5,7 @@ import { requireAdminPage } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import { formatPrice } from "@/lib/pricing";
 import { LessonList } from "@/components/LessonList";
+import { fixedLessonSlots } from "@/lib/booking/validate";
 import { StatusBadge } from "@/components/StatusBadge";
 
 const STATUSES = ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED"] as const;
@@ -78,7 +79,7 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
                     {r.priceCents != null && <div className="text-xs text-slate-500">{formatPrice(r.priceCents, locale)}</div>}
                   </td>
                   <td className="p-3">
-                    <LessonList slots={JSON.parse(r.slotsJson)} locale={locale} />
+                    <LessonList slots={JSON.parse(r.slotsJson)} locale={locale} size={fixedLessonSlots(r.package)} />
                   </td>
                   <td className="p-3 whitespace-nowrap">{formatDateTime(r.createdAt, locale)}</td>
                   <td className="p-3">

@@ -10,3 +10,4 @@ next-env.d.ts
 *.tsbuildinfo
 .claude/settings.local.json
 .deploy.env
+.claude/plans/

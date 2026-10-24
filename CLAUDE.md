@@ -29,6 +29,7 @@ In produzione gira in un container LXC con systemd, senza Docker: vedi [docs/DEP
 - `src/lib/pricing.ts` – tariffario e prezzi (centesimi); `src/lib/theme.ts` – tema → variabili CSS (condiviso server/client), `theme-server.ts` lettura/salvataggio
 - `src/lib/billing.ts` – dati di fatturazione: schema zod, controllo CF/P.IVA, righe per fattura; i campi del modulo profilo hanno prefisso `b_`
 - `src/lib/media.ts` + `src/app/api/admin/media` + `src/app/media/[name]` – immagini caricate (tipo riconosciuto dai byte, SVG escluso); `public/presets/` – immagini d'esempio
+- `src/lib/availability.ts` – slot liberi, lezioni di gruppo a cui unirsi, pulizia delle lezioni vuote; `src/lib/packages.ts` – regole del pacchetto e fasce orarie (`timeWindowsJson`)
 - `src/lib/booking/validate.ts` – regole del pacchetto, usate sia dal client (feedback live) sia dal server (in transazione). Modifiche alle regole → aggiornare i test accanto
 - `src/app/actions/` – server actions (`auth`, `booking`, `admin`). Ogni action admin chiama `requireAdmin()`
 - `src/app/[locale]/` – pagine; `admin/` protetto dal layout (redirect) + `requireAdminPage()` in ogni pagina
@@ -42,6 +43,6 @@ In produzione gira in un container LXC con systemd, senza Docker: vedi [docs/DEP
 ## Invarianti
 - I colori `brand`/`accent`/`slate` di Tailwind sono variabili CSS del tema: niente colori fissi nei componenti, se non semantici (rosso errore, verde libero)
 - Un'immagine in uso (tema o pacchetto) non si può eliminare dalla galleria
-- `BookedSlot.startAt` è unique: è ciò che impedisce doppie prenotazioni. Rifiuto/annullamento cancellano i `BookedSlot`; `BookingRequest.slotsJson` conserva lo storico
+- `BookedSlot.startAt` è unique: è ciò che impedisce lezioni sovrapposte. Gli slot appartengono a una `Lesson` (lezione fissata); ogni richiesta vi occupa un `Seat`, con `(lessonId, seat)` unique per non superare `maxParticipants`. Rifiuto/annullamento/cancellazione tolgono i `Seat` e poi `deleteEmptyLessons()` libera le lezioni rimaste vuote; `BookingRequest.slotsJson` conserva lo storico
 - Gli slot prenotati non si possono togliere dalla disponibilità
 - Mai fidarsi della validazione client: `submitBooking` rivalida tutto

@@ -28,7 +28,8 @@
     "step": "Lessons in {step}-minute blocks",
     "validity": "To be completed within {days} days",
     "perWeek": "At most {n, plural, one {# lesson} other {# lessons}} per week",
-    "lessons": "{n, plural, one {# lesson} other {# lessons}} of {duration}"
+    "lessons": "{n, plural, one {# lesson} other {# lessons}} of {duration}",
+    "participants": "Up to {n} participants per lesson"
   },
   "calendar": {
     "prev": "Previous month",
@@ -59,6 +60,10 @@
     "loading": "Loading…",
     "legendFree": "Days with free times",
     "legendSelected": "Days with selected times",
+    "legendGroup": "Group lessons with free seats",
+    "groupHint": "Group lessons: up to {n} participants.",
+    "groupSeats": "{n, plural, one {# seat left} other {# seats left}}",
+    "groupBadge": "group",
     "remove": "Remove",
     "counterLessons": "Lessons chosen: {selected, number} of {required, number}"
   },
@@ -66,12 +71,14 @@
     "DUPLICATE_SLOT": "Time selected more than once ({time}).",
     "COUNT_MISMATCH": "You must book {required} minutes of lessons in total (now {selected}).",
     "LESSON_TOO_SHORT": "The lesson on {day} at {time} is too short: at least {min} minutes.",
-    "LESSON_TOO_LONG": "The lesson on {day} at {time} is too long: at most {max} minutes. Back-to-back lessons count as one.",
+    "LESSON_TOO_LONG": "The lesson on {day} at {time} is too long: maximum {max} minutes.",
     "LESSON_STEP": "The lesson on {day} at {time} must last a multiple of {step} minutes.",
     "OUTSIDE_VALIDITY": "All lessons must fall within {days} days of the first one.",
     "TOO_MANY_PER_WEEK": "Too many lessons in the week of {day}: at most {max}.",
     "SLOT_UNAVAILABLE": "The time on {day} at {time} is no longer available.",
     "SLOT_TAKEN": "One of the times was just booked by someone else. Please update your selection.",
+    "OUTSIDE_WINDOW": "The lesson on {day} at {time} is outside the course time slots.",
+    "LESSON_FULL": "One of the group lessons has just filled up. Please update your selection.",
     "UNAUTHENTICATED": "Please sign in to continue.",
     "PROFILE_INCOMPLETE": "Please complete your profile to continue.",
     "INVALID_INPUT": "Invalid data.",
@@ -213,7 +220,9 @@
       "noBilling": "The client has not entered invoicing details.",
       "taxCode": "Tax code",
       "vat": "VAT number",
-      "sdi": "SDI code"
+      "sdi": "SDI code",
+      "groupLessons": "Group lessons",
+      "groupCount": "{n} of {max} booked"
     },
     "availability": {
       "title": "Availability",
@@ -280,6 +289,20 @@
       },
       "validityDays": "Validity (days between first and last lesson)",
       "maxLessonsPerWeek": "Max lessons per week (empty = no limit)",
+      "maxParticipants": "Maximum participants per lesson",
+      "maxParticipantsHint": "1 = one-to-one lessons. With more seats, the first client sets the lesson and others can join while seats are left.",
+      "groupKey": "Group (optional)",
+      "groupKeyHint": "Packages with the same group and lesson length share group lessons (e.g. “4 hours” and “8 hours” of the same course). Best give them all the same number of seats.",
+      "windows": {
+        "title": "Course time slots",
+        "none": "No time slots: the course can be booked whenever you are available.",
+        "weekday": "Day",
+        "from": "from",
+        "to": "to",
+        "remove": "Remove",
+        "add": "+ Add time slot",
+        "hint": "Lessons must fit entirely within one time slot and within the availability set in the calendar."
+      },
       "sortOrder": "Order",
       "active": "Active (visible to clients)",
       "save": "Save",
