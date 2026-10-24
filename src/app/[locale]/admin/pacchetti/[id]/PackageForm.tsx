@@ -6,6 +6,7 @@ import type { Package } from "@prisma/client";
 import { useRouter } from "@/i18n/routing";
 import { deletePackage, savePackage, type FormState } from "@/app/actions/admin";
 import { MediaPicker } from "@/components/MediaPicker";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import { formatDuration, formatPrice, packageLessons, type Rate } from "@/lib/pricing";
 
 export function PackageForm({ pkg, rates, locale }: { pkg: Package | null; rates: Rate[]; locale: string }) {
@@ -61,7 +62,13 @@ export function PackageForm({ pkg, rates, locale }: { pkg: Package | null; rates
           <label htmlFor={name} className="label">
             {t(name)}
           </label>
-          <textarea id={name} name={name} rows={2} className="input" defaultValue={pkg?.[name] ?? ""} />
+          <textarea id={name} name={name} rows={2} maxLength={2000} className="input" defaultValue={pkg?.[name] ?? ""} />
+        </div>
+      ))}
+      {(["detailsIt", "detailsEn"] as const).map((name) => (
+        <div key={name}>
+          <span className="label">{t(name)}</span>
+          <RichTextEditor name={name} initial={pkg?.[name] ?? ""} label={t(name)} />
         </div>
       ))}
       {pkg && !current && <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">{t("variableLegacy")}</p>}

@@ -55,9 +55,14 @@ export default async function HomePage() {
                   priceNote={t("priceNote")}
                   facts={<PackageFacts pkg={p} />}
                   action={
-                    <Link href={`/prenota/${p.id}`} className="btn-primary w-full">
-                      {t("choose")}
-                    </Link>
+                    <div className="grid w-full grid-cols-2 gap-2">
+                      <Link href={`/corso/${p.id}`} className="btn-secondary">
+                        {t("explore")}
+                      </Link>
+                      <Link href={`/prenota/${p.id}`} className="btn-primary">
+                        {t("choose")}
+                      </Link>
+                    </div>
                   }
                 />
               );

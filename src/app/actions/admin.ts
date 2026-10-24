@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { normalizeEmail, requireAdmin } from "@/lib/auth";
 import { sendStatusEmail } from "@/lib/mail";
 import { ratesSchema, type Rate } from "@/lib/pricing";
+import { MAX_DETAILS_LENGTH, sanitizeRichHtml } from "@/lib/rich-text";
 import { getRates, getSettings, saveRates, saveSettings, SETTING_DEFAULTS, type Settings } from "@/lib/settings";
 import { themeSchema, type Theme } from "@/lib/theme";
 import { saveTheme } from "@/lib/theme-server";
@@ -95,6 +96,8 @@ const packageSchema = z.object({
   nameEn: z.string().trim().min(1).max(120),
   descriptionIt: z.string().max(2000).default(""),
   descriptionEn: z.string().max(2000).default(""),
+  detailsIt: z.string().max(MAX_DETAILS_LENGTH).default(""),
+  detailsEn: z.string().max(MAX_DETAILS_LENGTH).default(""),
   lessonsCount: z.coerce.number().int().min(1).max(200),
   lessonMinutes: z.coerce.number().int().min(SLOT_MINUTES).max(480).refine((m) => m % SLOT_MINUTES === 0),
   validityDays: z.coerce.number().int().min(1).max(730),
@@ -118,6 +121,8 @@ export async function savePackage(_prev: FormState, form: FormData): Promise<For
     nameEn: v.nameEn,
     descriptionIt: v.descriptionIt,
     descriptionEn: v.descriptionEn,
+    detailsIt: sanitizeRichHtml(v.detailsIt),
+    detailsEn: sanitizeRichHtml(v.detailsEn),
     totalSlots: v.lessonsCount * lessonSlots,
     minLessonSlots: lessonSlots,
     maxLessonSlots: lessonSlots,

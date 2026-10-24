@@ -30,9 +30,14 @@ export default async function BookPage({
 
   return (
     <div>
-      <Link href="/" className="text-sm text-brand-600 hover:underline">
-        {t("back")}
-      </Link>
+      <div className="flex justify-between gap-4 text-sm">
+        <Link href="/" className="text-brand-600 hover:underline">
+          {t("back")}
+        </Link>
+        <Link href={`/corso/${pkg.id}`} className="text-brand-600 hover:underline">
+          {t("details")}
+        </Link>
+      </div>
       <div className="mt-3 mb-6 flex items-start gap-4">
         {pkg.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element

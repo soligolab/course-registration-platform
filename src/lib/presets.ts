@@ -17,6 +17,8 @@ export const PRESET_IMAGES = {
     { url: "/presets/corso-nota.svg", label: "Nota" },
     { url: "/presets/corso-montagna.svg", label: "Montagna" },
   ],
+  // immagini dentro le descrizioni dei pacchetti: solo quelle caricate
+  content: [],
 } as const;
 
 export type MediaKind = keyof typeof PRESET_IMAGES;

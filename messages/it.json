@@ -13,6 +13,7 @@
     "title": "Prenota il tuo corso",
     "subtitle": "Scegli un pacchetto, seleziona i giorni e gli orari che preferisci e invia la richiesta. Verrai contattato per la conferma.",
     "choose": "Scegli",
+    "explore": "Esplora",
     "noPackages": "Nessun pacchetto disponibile al momento.",
     "packagesTitle": "I pacchetti",
     "priceNote": "prezzo indicativo",
@@ -34,8 +35,13 @@
     "next": "Mese successivo",
     "today": "Oggi"
   },
+  "course": {
+    "back": "← Tutti i pacchetti",
+    "book": "Scegli le date"
+  },
   "booking": {
     "back": "← Tutti i pacchetti",
+    "details": "Dettagli del corso",
     "pickDay": "Scegli un giorno evidenziato per vedere gli orari liberi.",
     "slotsOf": "Orari liberi – {date}",
     "noSlots": "Nessun orario libero in questo giorno.",
@@ -231,8 +237,47 @@
       "edit": "Modifica pacchetto",
       "nameIt": "Nome (italiano)",
       "nameEn": "Nome (inglese)",
-      "descriptionIt": "Descrizione (italiano)",
-      "descriptionEn": "Descrizione (inglese)",
+      "descriptionIt": "Riassunto (italiano) · nella scheda della home",
+      "descriptionEn": "Riassunto (inglese) · nella scheda della home",
+      "detailsIt": "Descrizione completa (italiano) · nella pagina del corso",
+      "detailsEn": "Descrizione completa (inglese) · nella pagina del corso",
+      "editor": {
+        "paragraph": "Testo normale",
+        "h2": "Titolo",
+        "h3": "Sottotitolo",
+        "bold": "Grassetto",
+        "italic": "Corsivo",
+        "underline": "Sottolineato",
+        "strike": "Barrato",
+        "link": "Link",
+        "linkPrompt": "Indirizzo del link (vuoto per toglierlo)",
+        "align": {
+          "left": "Allinea a sinistra",
+          "center": "Centra",
+          "right": "Allinea a destra",
+          "justify": "Giustifica"
+        },
+        "bulletList": "Elenco puntato",
+        "orderedList": "Elenco numerato",
+        "quote": "Citazione",
+        "hr": "Linea di separazione",
+        "image": "Inserisci immagine",
+        "columns": "Due colonne",
+        "removeColumns": "Togli le colonne",
+        "undo": "Annulla",
+        "redo": "Ripeti",
+        "imagePosition": "Immagine:",
+        "imageAlign": {
+          "left": "A sinistra",
+          "center": "Al centro",
+          "right": "A destra",
+          "wide": "Larga"
+        },
+        "altText": "Testo alternativo",
+        "altPrompt": "Breve descrizione dell’immagine (per chi non la vede)",
+        "removeImage": "Togli",
+        "hint": "Le immagini a sinistra/destra sono affiancate al testo; su telefono vanno a tutta larghezza, e le due colonne una sotto l’altra."
+      },
       "validityDays": "Validità (giorni tra prima e ultima lezione)",
       "maxLessonsPerWeek": "Max lezioni a settimana (vuoto = nessun limite)",
       "sortOrder": "Ordine",
@@ -317,12 +362,13 @@
       "uploading": "Caricamento…",
       "hintBanner": "JPG, PNG, WebP o GIF fino a 5 MB. Ideale: almeno 1600×600 px.",
       "hintLogo": "JPG, PNG, WebP o GIF fino a 5 MB. Ideale: quadrata, almeno 256×256 px.",
+      "hintContent": "JPG, PNG, WebP o GIF fino a 5 MB. Ideale: almeno 1200 px di larghezza.",
       "delete": "Elimina",
       "deleteConfirm": "Eliminare definitivamente questa immagine?",
       "errors": {
         "BAD_TYPE": "Formato non supportato: usa JPG, PNG, WebP o GIF.",
         "TOO_LARGE": "File troppo grande (massimo 5 MB).",
-        "IN_USE": "L'immagine è in uso (tema o pacchetto): sostituiscila prima di eliminarla.",
+        "IN_USE": "L’immagine è in uso (tema, pacchetto o descrizione di un pacchetto): sostituiscila prima di eliminarla.",
         "NO_FILE": "Nessun file scelto.",
         "generic": "Operazione non riuscita. Riprova."
       }

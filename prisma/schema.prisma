@@ -56,7 +56,9 @@ model Package {
   nameIt            String
   nameEn            String
   descriptionIt     String           @default("")
-  descriptionEn     String           @default("")
+  descriptionEn     String           @default("") // riassunto in testo semplice, nella scheda della home
+  detailsIt         String           @default("") // descrizione completa in HTML (sanificato), nella pagina del corso
+  detailsEn         String           @default("")
   totalSlots        Int // unità da 30 minuti
   minLessonSlots    Int
   maxLessonSlots    Int

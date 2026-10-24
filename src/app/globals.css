@@ -58,3 +58,75 @@
     @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 }
+
+/* Descrizione completa dei pacchetti: pagina del corso e editor (RichTextEditor). */
+@layer components {
+  .rich {
+    @apply text-slate-700;
+    display: flow-root; /* contiene le immagini flottanti */
+    line-height: 1.7;
+  }
+  .rich > * + *,
+  .rich [data-column] > * + * {
+    @apply mt-4;
+  }
+  .rich h2 {
+    @apply mt-8 text-2xl;
+  }
+  .rich h3 {
+    @apply mt-6 text-lg;
+  }
+  .rich > :first-child {
+    @apply mt-0;
+  }
+  .rich a {
+    @apply text-brand-700 underline;
+  }
+  .rich ul {
+    @apply list-disc pl-6;
+  }
+  .rich ol {
+    @apply list-decimal pl-6;
+  }
+  .rich li + li {
+    @apply mt-1;
+  }
+  .rich blockquote {
+    @apply border-l-4 border-accent-500 bg-slate-50 px-4 py-2 italic;
+  }
+  .rich hr {
+    @apply my-8 border-slate-200;
+  }
+  .rich img {
+    @apply rounded-[var(--radius)];
+  }
+  .rich img[data-align="center"] {
+    @apply mx-auto max-h-[28rem];
+  }
+  .rich img[data-align="wide"] {
+    @apply w-full object-cover;
+  }
+  .rich img[data-align="left"],
+  .rich img[data-align="right"] {
+    @apply mb-3 w-full sm:mt-1 sm:w-2/5;
+  }
+  .rich img[data-align="left"] {
+    @apply sm:float-left sm:mr-6;
+  }
+  .rich img[data-align="right"] {
+    @apply sm:float-right sm:ml-6;
+  }
+  .rich [data-columns] {
+    @apply grid gap-8 md:grid-cols-2;
+  }
+  .rich [data-column] {
+    display: flow-root;
+  }
+  /* nell'editor: bordi guida delle colonne e immagine selezionata */
+  .rich-editor [data-column] {
+    @apply rounded border border-dashed border-slate-300 p-2;
+  }
+  .rich-editor img.ProseMirror-selectednode {
+    @apply ring-2 ring-brand-500;
+  }
+}

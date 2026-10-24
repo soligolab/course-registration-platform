@@ -32,8 +32,9 @@ server (`corsi-deploy.md` nel progetto di manutenzione), in `.deploy.env` e in `
 | 10-24 | Dati del cliente chiesti **solo all'invio** della richiesta (prima si scelgono pacchetto e date, anche senza accesso); popup dopo "Salva e continua"; in caso di errore il modulo porta al primo campo da correggere |
 | 10-24 | Corretto: al ritorno da login/profilo l'invio automatico della richiesta restava appeso su "Invio in corso…" (partiva mentre si caricava il calendario) |
 | 10-24 | README riscritto (sviluppo su Linux, niente Windows; contenuti aggiornati) |
+| 10-24 | **Pagina del corso** (`/corso/<id>`, pulsante *Esplora* nella home) con descrizione completa scritta in un editor visuale: titoli, stili, immagini della galleria, due colonne; HTML ripulito sul server. Migrazione `package_details` |
 
-Test: 29 (regole di prenotazione, tariffario, tema, fatturazione). Ogni deploy li esegue.
+Test: 34 (regole di prenotazione, tariffario, tema, fatturazione, pulizia dell'HTML delle descrizioni). Ogni deploy li esegue.
 
 ## Da fare
 

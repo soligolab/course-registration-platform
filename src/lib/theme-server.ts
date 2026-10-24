@@ -23,5 +23,7 @@ export async function saveTheme(theme: Theme) {
 export async function mediaInUse(url: string): Promise<boolean> {
   const theme = await getTheme();
   if (Object.values(theme).includes(url)) return true;
-  return (await prisma.package.count({ where: { imageUrl: url } })) > 0;
+  // anche le immagini inserite nelle descrizioni complete
+  const where = { OR: [{ imageUrl: url }, { detailsIt: { contains: `"${url}"` } }, { detailsEn: { contains: `"${url}"` } }] };
+  return (await prisma.package.count({ where })) > 0;
 }
