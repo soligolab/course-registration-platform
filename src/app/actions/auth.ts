@@ -12,7 +12,6 @@ import {
   generateOtp,
   getCurrentUser,
   hash,
-  isProfileComplete,
   normalizeEmail,
 } from "@/lib/auth";
 import { sendOtpEmail } from "@/lib/mail";
@@ -53,7 +52,7 @@ export async function verifyOtp(
   rawEmail: string,
   rawCode: string,
   locale: string,
-): Promise<Result<{ profileComplete: boolean; isAdmin: boolean }>> {
+): Promise<Result<{ isAdmin: boolean }>> {
   const email = normalizeEmail(rawEmail);
   const code = rawCode.replace(/\D/g, "");
   const otp = await prisma.otpCode.findFirst({
@@ -86,7 +85,7 @@ export async function verifyOtp(
   });
 
   await createSession(user.id);
-  return { ok: true, profileComplete: isProfileComplete(user), isAdmin: user.role === "ADMIN" };
+  return { ok: true, isAdmin: user.role === "ADMIN" };
 }
 
 export async function logout() {

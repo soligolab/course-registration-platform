@@ -18,6 +18,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-xl">
       <h1 className="text-2xl font-bold">{t("title")}</h1>
       <p className="mt-2 text-sm text-slate-600">{t("intro")}</p>
+      {next && <p className="mt-4 rounded-lg border border-brand-200 bg-brand-50 p-3 text-sm text-brand-800">{t("fromBooking")}</p>}
       <div className="card mt-6">
         <ProfileForm
           next={next ?? null}

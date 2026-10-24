@@ -41,14 +41,8 @@ export function LoginForm({ next }: { next: string | null }) {
         setError(errorMessage({ code: res.error }));
         return;
       }
-      const target = safeNext(next);
-      let dest: string;
-      if (!res.profileComplete && (target || !res.isAdmin)) {
-        dest = target ? `/profilo?next=${encodeURIComponent(target)}` : "/profilo";
-      } else {
-        dest = target ?? (res.isAdmin ? "/admin" : "/");
-      }
-      router.push(dest);
+      // i dati del cliente si chiedono solo quando invia una richiesta (vedi BookingClient)
+      router.push(safeNext(next) ?? (res.isAdmin ? "/admin" : "/"));
       router.refresh();
     } catch {
       setError(errorMessage({ code: "generic" }));

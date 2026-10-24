@@ -1,10 +1,11 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { saveProfile, type ProfileState } from "@/app/actions/auth";
 import { safeNext } from "@/lib/nav";
+import { Modal } from "@/components/Modal";
 import type { Billing } from "@/lib/billing";
 import { BillingFields } from "./BillingFields";
 
@@ -30,12 +31,21 @@ export function ProfileForm({ initial, next }: { initial: Initial; next: string 
   const bad = new Set(state.errors ?? []);
   const cls = (f: string) => `input ${bad.has(f) ? "input-error" : ""}`;
 
+  const target = safeNext(next);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [savedOpen, setSavedOpen] = useState(false);
+
   useEffect(() => {
-    if (!state.ok) return;
-    const target = safeNext(next);
-    if (target) router.push(target);
-    router.refresh();
-  }, [state, next, router]);
+    if (state.ok) {
+      setSavedOpen(true);
+      router.refresh();
+    } else if (state.errors) {
+      // porta in vista il primo campo da correggere, altrimenti il clic sembra non fare nulla
+      const first = formRef.current?.querySelector<HTMLElement>(".input-error, [data-form-error]");
+      first?.scrollIntoView({ behavior: "smooth", block: "center" });
+      first?.focus({ preventScroll: true });
+    }
+  }, [state, router]);
 
   // per "usa i dati dell'allievo" nei dati di fatturazione
   const student = () => ({
@@ -45,7 +55,9 @@ export function ProfileForm({ initial, next }: { initial: Initial; next: string 
   const billingErrors = [...bad].some((e) => e.startsWith("b_"));
 
   return (
+    <>
     <form
+      ref={formRef}
       // invio manuale: con <form action> React 19 svuota i campi dopo l'invio, anche se ci sono errori
       onSubmit={(e) => {
         e.preventDefault();
@@ -129,12 +141,32 @@ export function ProfileForm({ initial, next }: { initial: Initial; next: string 
         </span>
       </label>
 
-      {state.errors && <p className="text-sm text-red-600">{billingErrors ? t("invalidBilling") : t("invalid")}</p>}
-      {state.ok && !next && <p className="text-sm text-emerald-700">{t("saved")}</p>}
+      {state.errors && <p data-form-error className="text-sm text-red-600">{billingErrors ? t("invalidBilling") : t("invalid")}</p>}
 
       <button className="btn-primary w-full" disabled={pending}>
         {t("save")}
       </button>
     </form>
+
+    <Modal open={savedOpen} onClose={() => setSavedOpen(false)} title={t("savedTitle")}>
+      <p className="text-sm text-slate-600">{target ? t("savedBodyNext") : t("savedBody")}</p>
+      <div className="flex justify-end gap-2">
+        {target ? (
+          <button type="button" className="btn-primary" onClick={() => router.push(target)}>
+            {t("continue")}
+          </button>
+        ) : (
+          <>
+            <button type="button" className="btn-secondary" onClick={() => setSavedOpen(false)}>
+              {t("close")}
+            </button>
+            <button type="button" className="btn-primary" onClick={() => router.push("/")}>
+              {t("browseCourses")}
+            </button>
+          </>
+        )}
+      </div>
+    </Modal>
+    </>
   );
 }

@@ -114,13 +114,16 @@ export function BookingClient({ pkg, initialMonth, loggedIn, profileComplete, au
   }
 
   // di ritorno da login/profilo (?invia=1): invia automaticamente la selezione salvata
+  // (se mancano i dati del cliente, submit() porta al profilo e poi si torna qui).
+  // Si aspetta il caricamento del mese: una server action lanciata mentre getFreeMonth è in corso resta appesa.
   const [autoTried, setAutoTried] = useState(false);
+  const monthLoaded = initialMonth in free && !loading;
   useEffect(() => {
-    if (!autoSubmit || autoTried || !restored || !loggedIn || !profileComplete) return;
+    if (!autoSubmit || autoTried || !restored || !loggedIn || !monthLoaded) return;
     setAutoTried(true);
     window.history.replaceState(null, "", window.location.pathname);
     if (complete) submit();
-  }, [autoSubmit, autoTried, restored, loggedIn, profileComplete, complete]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [autoSubmit, autoTried, restored, loggedIn, monthLoaded, complete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function submit() {
     const back = `/prenota/${pkg.id}?invia=1`;
