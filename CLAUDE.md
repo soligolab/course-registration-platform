@@ -1,6 +1,7 @@
 # Corsi – piattaforma richieste di prenotazione
 
 Requisiti e decisioni: [docs/SPEC.md](docs/SPEC.md). Leggilo prima di modificare il comportamento.
+**Stato del lavoro e cose da fare: [STATUS.md](STATUS.md)** – aggiornarlo a fine sessione.
 
 ## Repository
 `github.com/soligolab/course-registration-platform`, **pubblico**. Dopo ogni modifica: commit e push (lo script di deploy fa anche il push).
