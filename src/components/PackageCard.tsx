@@ -8,7 +8,6 @@ export function PackageCard({
   description,
   imageUrl,
   price,
-  priceNote,
   facts,
   action,
 }: {
@@ -16,8 +15,8 @@ export function PackageCard({
   name: string;
   description: string;
   imageUrl: string;
-  price: string | null;
-  priceNote: string;
+  /** prezzo già impaginato (PackagePrice) */
+  price: ReactNode;
   facts: ReactNode;
   action: ReactNode;
 }) {
@@ -37,12 +36,7 @@ export function PackageCard({
         )}
         <div className="min-w-0">
           <h2 className="text-xl">{name}</h2>
-          {price && (
-            <p className="mt-1">
-              <span className="text-2xl font-semibold text-brand-700">{price}</span>{" "}
-              <span className="text-xs text-slate-500">{priceNote}</span>
-            </p>
-          )}
+          {price && <div className="mt-1">{price}</div>}
         </div>
       </div>
       {description && <p className="mt-3 whitespace-pre-line text-sm text-slate-600">{description}</p>}

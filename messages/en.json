@@ -19,7 +19,8 @@
     "priceNote": "indicative price",
     "ratesTitle": "Prices",
     "ratesSubtitle": "Price per single lesson, by length.",
-    "rateLesson": "{duration} lesson"
+    "rateLesson": "{duration} lesson",
+    "bookSingle": "Request a lesson"
   },
   "pkg": {
     "hours": "{hours, plural, one {# hour} other {# hours}} in total",
@@ -314,7 +315,9 @@
       "lessonsCount": "Number of lessons",
       "lessonMinutes": "Length of each lesson (from the price list)",
       "summary": "{n, plural, one {# lesson} other {# lessons}} of {duration} = {hours, number} hours.",
-      "total": "Price: {price}",
+      "total": "Full price (lessons × rate): {price}",
+      "price": "Package price (€)",
+      "priceHint": "Optional. If lower than the full price, clients see the full price struck through and the discount percentage. Empty = full price.",
       "noRate": "This length has no price in the price list yet.",
       "variableLegacy": "This package had a variable lesson length: saving it makes the length fixed.",
       "imageUrl": "Package image",
@@ -359,11 +362,18 @@
     },
     "rates": {
       "title": "Price list",
-      "hint": "Price of one lesson for each length. Each package uses one of these lengths: its price is number of lessons × rate. Leave the price empty if not decided yet.",
+      "hint": "Price of one lesson of each length, shown in the Prices section of the home page. For each package, lessons × rate is the full price: if you give the package a lower price, clients see the discount. Leave the price empty if not decided yet.",
       "minutes": "Length (minutes)",
       "price": "Price (€)",
       "pricePlaceholder": "to be set",
       "remove": "Remove",
+      "texts": "Card texts",
+      "closeTexts": "Close texts",
+      "labelIt": "Card name (Italian)",
+      "labelEn": "Card name (English)",
+      "labelPlaceholder": "Lesson of {duration}",
+      "textIt": "Short text (Italian)",
+      "textEn": "Short text (English)",
       "add": "Add length",
       "save": "Save price list",
       "saved": "Price list saved.",
@@ -372,6 +382,23 @@
         "DUPLICATE": "Each length can appear only once.",
         "IN_USE": "A length you want to remove is used by a package: change the package first."
       }
+    },
+    "ratesPage": {
+      "title": "Prices section on the home page",
+      "hint": "Title, subtitle and description shown above the price cards at the bottom of the home page. Leave empty to use the default texts.",
+      "titleIt": "Title (Italian)",
+      "titleEn": "Title (English)",
+      "subtitleIt": "Subtitle (Italian)",
+      "subtitleEn": "Subtitle (English)",
+      "defaultTitleIt": "Tariffe",
+      "defaultTitleEn": "Prices",
+      "defaultSubtitleIt": "Prezzo per singola lezione, in base alla durata.",
+      "defaultSubtitleEn": "Price per single lesson, by length.",
+      "detailsIt": "Description (Italian)",
+      "detailsEn": "Description (English)",
+      "save": "Save prices section",
+      "saved": "Prices section saved.",
+      "invalid": "Check the fields: some texts are too long."
     },
     "media": {
       "none": "none",

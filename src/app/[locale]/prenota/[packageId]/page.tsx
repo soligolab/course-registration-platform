@@ -5,7 +5,8 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, isProfileComplete } from "@/lib/auth";
 import { monthKey } from "@/lib/time";
 import { PackageFacts } from "@/components/PackageFacts";
-import { formatPrice, packagePrice } from "@/lib/pricing";
+import { packagePricing } from "@/lib/pricing";
+import { PackagePrice } from "@/components/PackagePrice";
 import { getRates } from "@/lib/settings";
 import { parseTimeWindows } from "@/lib/packages";
 import { BookingClient } from "./BookingClient";
@@ -27,7 +28,7 @@ export default async function BookPage({
     getRates(),
   ]);
   if (!pkg || !pkg.active) notFound();
-  const price = packagePrice(pkg, rates);
+  const pricing = packagePricing(pkg, rates);
 
   return (
     <div>
@@ -35,9 +36,11 @@ export default async function BookPage({
         <Link href="/" className="text-brand-600 hover:underline">
           {t("back")}
         </Link>
-        <Link href={`/corso/${pkg.id}`} className="text-brand-600 hover:underline">
-          {t("details")}
-        </Link>
+        {pkg.kind === "PACKAGE" && (
+          <Link href={`/corso/${pkg.id}`} className="text-brand-600 hover:underline">
+            {t("details")}
+          </Link>
+        )}
       </div>
       <div className="mt-3 mb-6 flex items-start gap-4">
         {pkg.imageUrl && (
@@ -46,12 +49,9 @@ export default async function BookPage({
         )}
         <div>
           <h1 className="text-2xl">{locale === "en" ? pkg.nameEn : pkg.nameIt}</h1>
-          {price != null && (
-            <p className="mt-1">
-              <span className="text-xl font-semibold text-brand-700">{formatPrice(price, locale)}</span>{" "}
-              <span className="text-xs text-slate-500">{th("priceNote")}</span>
-            </p>
-          )}
+          <div className="mt-1">
+            <PackagePrice pricing={pricing} locale={locale} note={th("priceNote")} />
+          </div>
           <div className="mt-2">
             <PackageFacts pkg={pkg} />
           </div>

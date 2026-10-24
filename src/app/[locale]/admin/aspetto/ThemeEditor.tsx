@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/routing";
 import { saveThemeAction } from "@/app/actions/admin";
 import { Hero } from "@/components/Hero";
 import { MediaPicker } from "@/components/MediaPicker";
+import { PackagePrice } from "@/components/PackagePrice";
 import { PackageCard } from "@/components/PackageCard";
 import { DEFAULT_THEME, FONT_KEYS, FONT_LABELS, PRESETS, contrastWarnings, themeVars, type Theme, type ThemeKey } from "@/lib/theme";
 
@@ -271,8 +272,7 @@ export function ThemeEditor({ initial, businessName }: { initial: Theme; busines
                 name={t("sample.name")}
                 description={t("sample.description")}
                 imageUrl="/presets/corso-sole.svg"
-                price="240 €"
-                priceNote={t("sample.priceNote")}
+                price={<PackagePrice pricing={{ price: 24000, base: 28800, discountPct: 17 }} locale="it" note={t("sample.priceNote")} />}
                 facts={
                   <ul className="space-y-1 text-sm text-slate-600">
                     <li className="font-medium text-slate-800">{t("sample.fact1")}</li>

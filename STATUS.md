@@ -34,8 +34,10 @@ server (`corsi-deploy.md` nel progetto di manutenzione), in `.deploy.env` e in `
 | 10-24 | README riscritto (sviluppo su Linux, niente Windows; contenuti aggiornati) |
 | 10-24 | **Pagina del corso** (`/corso/<id>`, pulsante *Esplora* nella home) con descrizione completa scritta in un editor visuale: titoli, stili, immagini della galleria, due colonne; HTML ripulito sul server. Migrazione `package_details` |
 | 10-24 | **Lezioni di gruppo** (max partecipanti per pacchetto, gruppi di pacchetti che condividono le lezioni, posti liberi nel calendario) e **fasce orarie settimanali** per corso; lezioni consecutive permesse. Migrazione `group_lessons` (converte le prenotazioni esistenti) |
+| 10-24 | **Prezzo del pacchetto** configurabile: prezzo pieno (lezioni × tariffa) barrato e percentuale di sconto; la richiesta registra il prezzo del pacchetto. **Sezione Tariffe** della home modificabile (titolo, sottotitolo, descrizione ricca, nome e testo di ogni scheda). Migrazione `package_price` |
+| 10-24 | **Lezioni singole prenotabili** dalla sezione Tariffe ("Richiedi una lezione" → calendario): un pacchetto nascosto per durata, sincronizzato col tariffario. Migrazione `single_lessons`. Dopo il deploy basta aprire *Admin → Pacchetti* (o salvare il tariffario) per crearli |
 
-Test: 58 (regole di prenotazione con lezioni di gruppo e fasce orarie, tariffario, tema, fatturazione, pulizia dell'HTML delle descrizioni). Ogni deploy li esegue.
+Test: 60 (regole di prenotazione con lezioni di gruppo e fasce orarie, tariffario, tema, fatturazione, pulizia dell'HTML delle descrizioni). Ogni deploy li esegue.
 
 ## Da fare
 

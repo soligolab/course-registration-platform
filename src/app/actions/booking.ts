@@ -8,7 +8,7 @@ import { freeSlotsBetween, joinableLessons, type JoinableInfo } from "@/lib/avai
 import { inTimeWindows, validateSelection, type ValidationError } from "@/lib/booking/validate";
 import { packageRules } from "@/lib/packages";
 import { sendBookingEmails } from "@/lib/mail";
-import { priceForLessons } from "@/lib/pricing";
+import { packagePricing } from "@/lib/pricing";
 import { adminNotifyEmails, getRates, getSettings } from "@/lib/settings";
 import { SLOT_MINUTES, SLOT_MS, dayKey, monthRange } from "@/lib/time";
 
@@ -81,7 +81,7 @@ export async function submitBooking(input: { packageId: string; slots: string[];
       const result = validateSelection(packageRules(pkg), slots, new Set(free), joinable);
       if (!result.ok) throw new ValidationFailed(result.errors);
       // prezzo congelato ora: un cambio di tariffario non altera le richieste già inviate
-      const priceCents = priceForLessons(result.lessons.map((l) => l.slots.length * SLOT_MINUTES), rates);
+      const priceCents = packagePricing(pkg, rates).price;
       const request = await tx.bookingRequest.create({
         data: {
           userId: user.id,

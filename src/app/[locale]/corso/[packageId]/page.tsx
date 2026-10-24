@@ -3,8 +3,9 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { prisma } from "@/lib/db";
 import { PackageFacts } from "@/components/PackageFacts";
-import { formatPrice, packagePrice } from "@/lib/pricing";
-import { packageDetails } from "@/lib/rich-text";
+import { packagePricing } from "@/lib/pricing";
+import { PackagePrice } from "@/components/PackagePrice";
+import { localizedDetails } from "@/lib/rich-text";
 import { getRates } from "@/lib/settings";
 
 /** Pagina di presentazione del corso: descrizione completa e accesso alla prenotazione. */
@@ -19,9 +20,9 @@ export default async function CoursePage({ params }: { params: Promise<{ package
   ]);
   if (!pkg || !pkg.active) notFound();
   const en = locale === "en";
-  const price = packagePrice(pkg, rates);
+  const pricing = packagePricing(pkg, rates);
   const summary = (en ? pkg.descriptionEn : pkg.descriptionIt) || (en ? pkg.descriptionIt : pkg.descriptionEn);
-  const details = packageDetails(pkg, locale);
+  const details = localizedDetails(pkg, locale);
   const book = (
     <Link href={`/prenota/${pkg.id}`} className="btn-primary px-6">
       {t("book")}
@@ -46,12 +47,9 @@ export default async function CoursePage({ params }: { params: Promise<{ package
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
-          {price != null && (
-            <p className="sm:text-right">
-              <span className="text-3xl font-semibold text-brand-700">{formatPrice(price, locale)}</span>
-              <span className="block text-xs text-slate-500">{th("priceNote")}</span>
-            </p>
-          )}
+          <div className="sm:text-right sm:[&_p]:justify-end">
+            <PackagePrice pricing={pricing} locale={locale} note={th("priceNote")} size="lg" />
+          </div>
           {book}
         </div>
       </div>

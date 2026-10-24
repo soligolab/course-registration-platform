@@ -3,11 +3,20 @@ import { SLOT_MINUTES } from "@/lib/time";
 
 /*
  * Tariffario: prezzo per lezione in base alla durata. Ogni pacchetto ha una durata fissa
- * (minLessonSlots = maxLessonSlots = lessonStepSlots), quindi il suo prezzo è
- * numero di lezioni × tariffa di quella durata. Prezzi in centesimi; null = non ancora fissato.
+ * (minLessonSlots = maxLessonSlots = lessonStepSlots): lezioni × tariffa è il suo prezzo di base;
+ * il prezzo del pacchetto (Package.priceCents) lo sostituisce e la differenza si mostra come sconto.
+ * Prezzi in centesimi; null = non ancora fissato.
  */
 
-export type Rate = { minutes: number; priceCents: number | null };
+/** label/text: nome e testo breve della scheda nella sezione Tariffe della home. */
+export type Rate = {
+  minutes: number;
+  priceCents: number | null;
+  labelIt?: string;
+  labelEn?: string;
+  textIt?: string;
+  textEn?: string;
+};
 
 export const DEFAULT_RATES: Rate[] = [
   { minutes: 45, priceCents: null },
@@ -18,6 +27,10 @@ export const DEFAULT_RATES: Rate[] = [
 export const rateSchema = z.object({
   minutes: z.number().int().min(SLOT_MINUTES).max(480).refine((m) => m % SLOT_MINUTES === 0),
   priceCents: z.number().int().min(0).max(1_000_000).nullable(),
+  labelIt: z.string().trim().max(60).default(""),
+  labelEn: z.string().trim().max(60).default(""),
+  textIt: z.string().trim().max(300).default(""),
+  textEn: z.string().trim().max(300).default(""),
 });
 
 export const ratesSchema = z
@@ -50,9 +63,25 @@ export function priceForLessons(minutes: number[], rates: Rate[]): number | null
   return total;
 }
 
-export function packagePrice(pkg: PackageShape, rates: Rate[]): number | null {
+/** Prezzo di base del pacchetto: lezioni × tariffa; null se manca la tariffa o la durata è variabile. */
+export function basePrice(pkg: PackageShape, rates: Rate[]): number | null {
   const l = packageLessons(pkg);
   return l ? priceForLessons(Array(l.count).fill(l.minutes), rates) : null;
+}
+
+export type PackagePricing = {
+  /** prezzo del pacchetto: quello configurato, altrimenti la base; null se non c'è nessuno dei due */
+  price: number | null;
+  /** base da mostrare barrata, solo se c'è uno sconto */
+  base: number | null;
+  discountPct: number | null;
+};
+
+export function packagePricing(pkg: PackageShape & { priceCents: number | null }, rates: Rate[]): PackagePricing {
+  const base = basePrice(pkg, rates);
+  const price = pkg.priceCents ?? base;
+  if (pkg.priceCents == null || base == null || price == null || base <= price) return { price, base: null, discountPct: null };
+  return { price, base, discountPct: Math.round(((base - price) / base) * 100) };
 }
 
 export function formatPrice(cents: number, locale: string): string {

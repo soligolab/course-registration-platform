@@ -9,7 +9,9 @@ import { MediaPicker } from "@/components/MediaPicker";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { parseTimeWindows } from "@/lib/packages";
 import { TimeWindowsEditor } from "./TimeWindowsEditor";
-import { formatDuration, formatPrice, packageLessons, type Rate } from "@/lib/pricing";
+import { formatDuration, formatPrice, packageLessons, packagePricing, type Rate } from "@/lib/pricing";
+import { PackagePrice } from "@/components/PackagePrice";
+import { SLOT_MINUTES } from "@/lib/time";
 
 export function PackageForm({
   pkg,
@@ -36,6 +38,14 @@ export function PackageForm({
   const [count, setCount] = useState(current?.count ?? 4);
   const [minutes, setMinutes] = useState(current?.minutes ?? rates.find((r) => r.minutes === 60)?.minutes ?? rates[0].minutes);
   const rate = rates.find((r) => r.minutes === minutes)?.priceCents;
+  const base = rate != null ? (count || 0) * rate : null;
+  // prezzo del pacchetto in euro; vuoto = lezioni × tariffa
+  const [price, setPrice] = useState(pkg?.priceCents != null ? (pkg.priceCents / 100).toFixed(2).replace(/\.00$/, "") : "");
+  const priceCents = price.trim() === "" ? null : Math.round(Number(price.replace(",", ".")) * 100);
+  const preview = packagePricing(
+    { totalSlots: (count || 0) * (minutes / SLOT_MINUTES), minLessonSlots: minutes / SLOT_MINUTES, maxLessonSlots: minutes / SLOT_MINUTES, priceCents: Number.isFinite(priceCents) ? priceCents : null },
+    rates,
+  );
 
   useEffect(() => {
     if (state.ok) router.push("/admin/pacchetti");
@@ -126,12 +136,32 @@ export function PackageForm({
       </div>
       <p className="text-sm text-slate-600">
         {t("summary", { n: count || 0, duration: formatDuration(minutes), hours: ((count || 0) * minutes) / 60 })}{" "}
-        {rate != null ? (
-          <strong>{t("total", { price: formatPrice((count || 0) * rate, locale) })}</strong>
+        {base != null ? (
+          <strong>{t("total", { price: formatPrice(base, locale) })}</strong>
         ) : (
           <span className="text-amber-700">{t("noRate")}</span>
         )}
       </p>
+      <div className="grid items-end gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="price" className="label">
+            {t("price")}
+          </label>
+          <input
+            id="price"
+            name="price"
+            inputMode="decimal"
+            placeholder={base != null ? (base / 100).toFixed(2).replace(/\.00$/, "") : ""}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className={`input ${bad.has("price") ? "input-error" : ""}`}
+          />
+        </div>
+        <div className="pb-1">
+          <PackagePrice pricing={preview} locale={locale} />
+        </div>
+      </div>
+      <p className="-mt-2 text-xs text-slate-500">{t("priceHint")}</p>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           {field("maxParticipants", "number", pkg?.maxParticipants ?? 1, { min: 1, max: 100, required: true })}

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { DEFAULT_RATES, parseRates, type Rate } from "@/lib/pricing";
 
@@ -53,4 +54,29 @@ export async function getRates(): Promise<Rate[]> {
 export async function saveRates(rates: Rate[]) {
   const value = JSON.stringify(rates);
   await prisma.setting.upsert({ where: { key: "rates" }, create: { key: "rates", value }, update: { value } });
+}
+
+/* Sezione Tariffe della home (chiave "ratesPage", JSON): testi e descrizione ricca; vuoto = testi predefiniti. */
+export const ratesPageSchema = z.object({
+  titleIt: z.string().trim().max(120).default(""),
+  titleEn: z.string().trim().max(120).default(""),
+  subtitleIt: z.string().trim().max(300).default(""),
+  subtitleEn: z.string().trim().max(300).default(""),
+  detailsIt: z.string().max(100_000).default(""),
+  detailsEn: z.string().max(100_000).default(""),
+});
+export type RatesPage = z.infer<typeof ratesPageSchema>;
+
+export async function getRatesPage(): Promise<RatesPage> {
+  const row = await prisma.setting.findUnique({ where: { key: "ratesPage" } });
+  try {
+    return ratesPageSchema.parse(row ? JSON.parse(row.value) : {});
+  } catch {
+    return ratesPageSchema.parse({});
+  }
+}
+
+export async function saveRatesPage(page: RatesPage) {
+  const value = JSON.stringify(page);
+  await prisma.setting.upsert({ where: { key: "ratesPage" }, create: { key: "ratesPage", value }, update: { value } });
 }

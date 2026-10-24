@@ -68,6 +68,8 @@ model Package {
   active            Boolean          @default(true)
   sortOrder         Int              @default(0)
   imageUrl          String           @default("") // /presets/… o /media/…
+  priceCents        Int? // prezzo del pacchetto; null = lezioni × tariffa (vedi src/lib/pricing.ts)
+  kind              String           @default("PACKAGE") // PACKAGE | SINGLE: lezione singola di una durata del tariffario, gestita da src/lib/single-lessons.ts
   maxParticipants   Int              @default(1) // partecipanti per lezione: > 1 = lezioni di gruppo
   groupKey          String           @default("") // pacchetti con lo stesso gruppo e la stessa durata condividono le lezioni
   timeWindowsJson   String           @default("[]") // fasce settimanali [{ weekday 1-7, from, to }]; vuoto = tutta la disponibilità

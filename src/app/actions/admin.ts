@@ -8,11 +8,12 @@ import { normalizeEmail, requireAdmin } from "@/lib/auth";
 import { sendStatusEmail } from "@/lib/mail";
 import { ratesSchema, type Rate } from "@/lib/pricing";
 import { MAX_DETAILS_LENGTH, sanitizeRichHtml } from "@/lib/rich-text";
-import { getRates, getSettings, saveRates, saveSettings, SETTING_DEFAULTS, type Settings } from "@/lib/settings";
+import { getRates, getSettings, ratesPageSchema, saveRates, saveRatesPage, saveSettings, SETTING_DEFAULTS, type RatesPage, type Settings } from "@/lib/settings";
 import { themeSchema, type Theme } from "@/lib/theme";
 import { saveTheme } from "@/lib/theme-server";
 import { deleteEmptyLessons } from "@/lib/availability";
 import { timeWindowsSchema } from "@/lib/packages";
+import { syncSingleLessonPackages } from "@/lib/single-lessons";
 import { SLOT_MINUTES, addMonths, daysInMonth, monthKey, monthRange, slotsForDay, weekdayIndex, zonedInstant } from "@/lib/time";
 
 /* ---------- Disponibilità ---------- */
@@ -117,6 +118,13 @@ const packageSchema = z.object({
   sortOrder: z.coerce.number().int().default(0),
   active: z.string().optional(),
   imageUrl: themeSchema.shape.logoUrl.default(""),
+  // euro con virgola o punto; vuoto = lezioni × tariffa
+  price: z
+    .string()
+    .trim()
+    .default("")
+    .transform((s) => (s === "" ? null : Math.round(Number(s.replace(",", ".")) * 100)))
+    .refine((c) => c === null || (Number.isFinite(c) && c >= 0 && c <= 10_000_000)),
   maxParticipants: z.coerce.number().int().min(1).max(100).default(1),
   groupKey: z.string().trim().max(60).default(""),
   timeWindowsJson: z
@@ -157,6 +165,7 @@ export async function savePackage(_prev: FormState, form: FormData): Promise<For
     sortOrder: v.sortOrder,
     active: v.active === "on",
     imageUrl: v.imageUrl,
+    priceCents: v.price,
     maxParticipants: v.maxParticipants,
     groupKey: v.groupKey,
     timeWindowsJson: JSON.stringify(v.timeWindowsJson),
@@ -273,12 +282,25 @@ export async function saveRatesAction(rates: Rate[]): Promise<{ ok: boolean; err
   const parsed = ratesSchema.safeParse(rates);
   if (!parsed.success) return { ok: false, error: parsed.error.issues.some((i) => i.message === "DUPLICATE") ? "DUPLICATE" : "INVALID" };
   // una durata usata da un pacchetto non si può togliere: il pacchetto resterebbe senza prezzo
-  const used = await prisma.package.findMany({ select: { minLessonSlots: true, maxLessonSlots: true } });
+  // (le lezioni singole no: si disattivano da sole)
+  const used = await prisma.package.findMany({ where: { kind: "PACKAGE" }, select: { minLessonSlots: true, maxLessonSlots: true } });
   const kept = new Set(parsed.data.map((r) => r.minutes));
   if (used.some((p) => p.minLessonSlots === p.maxLessonSlots && !kept.has(p.minLessonSlots * SLOT_MINUTES))) {
     return { ok: false, error: "IN_USE" };
   }
-  await saveRates([...parsed.data].sort((a, b) => a.minutes - b.minutes));
+  const sorted = [...parsed.data].sort((a, b) => a.minutes - b.minutes);
+  await saveRates(sorted);
+  await syncSingleLessonPackages(sorted);
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+export async function saveRatesPageAction(page: RatesPage): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  const parsed = ratesPageSchema.safeParse(page);
+  if (!parsed.success) return { ok: false };
+  const v = parsed.data;
+  await saveRatesPage({ ...v, detailsIt: sanitizeRichHtml(v.detailsIt), detailsEn: sanitizeRichHtml(v.detailsEn) });
   revalidatePath("/", "layout");
   return { ok: true };
 }

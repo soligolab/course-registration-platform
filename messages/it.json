@@ -19,7 +19,8 @@
     "priceNote": "prezzo indicativo",
     "ratesTitle": "Tariffe",
     "ratesSubtitle": "Prezzo per singola lezione, in base alla durata.",
-    "rateLesson": "Lezione da {duration}"
+    "rateLesson": "Lezione da {duration}",
+    "bookSingle": "Richiedi una lezione"
   },
   "pkg": {
     "hours": "{hours, plural, one {# ora} other {# ore}} in totale",
@@ -314,7 +315,9 @@
       "lessonsCount": "Numero di lezioni",
       "lessonMinutes": "Durata di ogni lezione (dal tariffario)",
       "summary": "{n, plural, one {# lezione} other {# lezioni}} da {duration} = {hours, number} ore.",
-      "total": "Prezzo: {price}",
+      "total": "Prezzo pieno (lezioni × tariffa): {price}",
+      "price": "Prezzo del pacchetto (€)",
+      "priceHint": "Facoltativo. Se è più basso del prezzo pieno, i clienti vedono il prezzo pieno barrato e la percentuale di sconto. Vuoto = prezzo pieno.",
       "noRate": "Questa durata non ha ancora un prezzo nel tariffario.",
       "variableLegacy": "Questo pacchetto aveva una durata di lezione variabile: salvandolo diventa a durata fissa.",
       "imageUrl": "Immagine del pacchetto",
@@ -359,11 +362,18 @@
     },
     "rates": {
       "title": "Tariffario",
-      "hint": "Prezzo per una lezione di ciascuna durata. Ogni pacchetto usa una di queste durate: il suo prezzo è numero di lezioni × tariffa. Lascia vuoto il prezzo se non è ancora deciso.",
+      "hint": "Prezzo per una lezione di ciascuna durata, mostrato nella sezione Tariffe della home. Per ogni pacchetto, lezioni × tariffa è il prezzo pieno: se al pacchetto dai un prezzo più basso, i clienti vedono lo sconto. Lascia vuoto il prezzo se non è ancora deciso.",
       "minutes": "Durata (minuti)",
       "price": "Prezzo (€)",
       "pricePlaceholder": "da definire",
       "remove": "Togli",
+      "texts": "Testi della scheda",
+      "closeTexts": "Chiudi testi",
+      "labelIt": "Nome sulla scheda (italiano)",
+      "labelEn": "Nome sulla scheda (inglese)",
+      "labelPlaceholder": "Lezione da {duration}",
+      "textIt": "Testo breve (italiano)",
+      "textEn": "Testo breve (inglese)",
       "add": "Aggiungi durata",
       "save": "Salva tariffario",
       "saved": "Tariffario salvato.",
@@ -372,6 +382,23 @@
         "DUPLICATE": "Ogni durata può comparire una sola volta.",
         "IN_USE": "Una durata che vuoi togliere è usata da un pacchetto: cambia prima il pacchetto."
       }
+    },
+    "ratesPage": {
+      "title": "Sezione Tariffe in home",
+      "hint": "Titolo, sottotitolo e descrizione che compaiono sopra le schede delle tariffe in fondo alla home. Lasciati vuoti, si usano i testi predefiniti.",
+      "titleIt": "Titolo (italiano)",
+      "titleEn": "Titolo (inglese)",
+      "subtitleIt": "Sottotitolo (italiano)",
+      "subtitleEn": "Sottotitolo (inglese)",
+      "defaultTitleIt": "Tariffe",
+      "defaultTitleEn": "Prices",
+      "defaultSubtitleIt": "Prezzo per singola lezione, in base alla durata.",
+      "defaultSubtitleEn": "Price per single lesson, by length.",
+      "detailsIt": "Descrizione (italiano)",
+      "detailsEn": "Descrizione (inglese)",
+      "save": "Salva sezione Tariffe",
+      "saved": "Sezione Tariffe salvata.",
+      "invalid": "Controlla i campi: alcuni testi sono troppo lunghi."
     },
     "media": {
       "none": "nessuna",

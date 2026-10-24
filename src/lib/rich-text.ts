@@ -37,8 +37,8 @@ export function sanitizeRichHtml(html: string): string {
   return sanitizeHtml(clean, { allowedTags: ["img"], allowedAttributes: false }).trim() === "" ? "" : clean;
 }
 
-/** Descrizione completa nella lingua richiesta, o nell'altra se manca. Ripulita di nuovo per i dati scritti fuori dall'editor. */
-export function packageDetails(pkg: { detailsIt: string; detailsEn: string }, locale: string): string {
+/** Descrizione ricca (pacchetto o sezione Tariffe) nella lingua richiesta, o nell'altra se manca. Ripulita di nuovo per i dati scritti fuori dall'editor. */
+export function localizedDetails(pkg: { detailsIt: string; detailsEn: string }, locale: string): string {
   const [first, second] = locale === "en" ? [pkg.detailsEn, pkg.detailsIt] : [pkg.detailsIt, pkg.detailsEn];
   return sanitizeRichHtml(first || second);
 }

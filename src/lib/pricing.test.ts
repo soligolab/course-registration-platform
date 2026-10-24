@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDuration, formatPrice, packageLessons, packagePrice, parseRates, priceForLessons, type Rate } from "./pricing";
+import { basePrice, formatDuration, formatPrice, packageLessons, packagePricing, parseRates, priceForLessons, type Rate } from "./pricing";
 
 const rates: Rate[] = [
   { minutes: 45, priceCents: 3000 },
@@ -8,18 +8,36 @@ const rates: Rate[] = [
 ];
 
 describe("tariffario", () => {
-  it("prezzo di un pacchetto a durata fissa = lezioni × tariffa", () => {
+  it("prezzo di base di un pacchetto a durata fissa = lezioni × tariffa", () => {
     // 8 lezioni da 45 minuti con slot da 15 minuti
     expect(packageLessons({ totalSlots: 24, minLessonSlots: 3, maxLessonSlots: 3 })).toEqual({ count: 8, minutes: 45 });
-    expect(packagePrice({ totalSlots: 24, minLessonSlots: 3, maxLessonSlots: 3 }, rates)).toBe(24000);
+    expect(basePrice({ totalSlots: 24, minLessonSlots: 3, maxLessonSlots: 3 }, rates)).toBe(24000);
     // 4 ore al mese in lezioni da 1 ora
-    expect(packagePrice({ totalSlots: 16, minLessonSlots: 4, maxLessonSlots: 4 }, rates)).toBe(15200);
+    expect(basePrice({ totalSlots: 16, minLessonSlots: 4, maxLessonSlots: 4 }, rates)).toBe(15200);
   });
 
   it("niente prezzo se la tariffa non è fissata o la durata è variabile", () => {
     expect(priceForLessons([60, 75], rates)).toBeNull();
-    expect(packagePrice({ totalSlots: 16, minLessonSlots: 4, maxLessonSlots: 4 }, [{ minutes: 60, priceCents: null }])).toBeNull();
-    expect(packagePrice({ totalSlots: 16, minLessonSlots: 4, maxLessonSlots: 8 }, rates)).toBeNull();
+    expect(basePrice({ totalSlots: 16, minLessonSlots: 4, maxLessonSlots: 4 }, [{ minutes: 60, priceCents: null }])).toBeNull();
+    expect(basePrice({ totalSlots: 16, minLessonSlots: 4, maxLessonSlots: 8 }, rates)).toBeNull();
+  });
+
+  it("prezzo del pacchetto configurato: base barrata e sconto", () => {
+    const fourHours = { totalSlots: 16, minLessonSlots: 4, maxLessonSlots: 4 }; // base 152 €
+    expect(packagePricing({ ...fourHours, priceCents: null }, rates)).toEqual({ price: 15200, base: null, discountPct: null });
+    expect(packagePricing({ ...fourHours, priceCents: 12900 }, rates)).toEqual({ price: 12900, base: 15200, discountPct: 15 });
+    // nessuno sconto se il prezzo è uguale o maggiore della base
+    expect(packagePricing({ ...fourHours, priceCents: 15200 }, rates).discountPct).toBeNull();
+    expect(packagePricing({ ...fourHours, priceCents: 16000 }, rates)).toEqual({ price: 16000, base: null, discountPct: null });
+    // tariffa non fissata: vale solo il prezzo configurato
+    expect(packagePricing({ ...fourHours, priceCents: 9000 }, [{ minutes: 60, priceCents: null }])).toEqual({ price: 9000, base: null, discountPct: null });
+    expect(packagePricing({ ...fourHours, priceCents: null }, [{ minutes: 60, priceCents: null }]).price).toBeNull();
+    // arrotondamento: 1 - 100/152 = 34,2 %
+    expect(packagePricing({ ...fourHours, priceCents: 10000 }, rates).discountPct).toBe(34);
+  });
+
+  it("tariffe salvate prima dei testi delle schede restano valide", () => {
+    expect(parseRates([{ minutes: 60, priceCents: 2200 }])[0]).toEqual({ minutes: 60, priceCents: 2200, labelIt: "", labelEn: "", textIt: "", textEn: "" });
   });
 
   it("scarta tariffari non validi", () => {

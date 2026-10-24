@@ -26,7 +26,8 @@ In produzione gira in un container LXC con systemd, senza Docker: vedi [docs/DEP
 
 ## Struttura
 - `src/lib/time.ts` – tutto il calcolo date/ora in `Europe/Rome`; DB e client scambiano ISO UTC. `SLOT_MINUTES = 15`: mai scrivere 30 o 15 a mano, usare la costante
-- `src/lib/pricing.ts` – tariffario e prezzi (centesimi); `src/lib/theme.ts` – tema → variabili CSS (condiviso server/client), `theme-server.ts` lettura/salvataggio
+- `src/lib/pricing.ts` – tariffario e prezzi (centesimi): `basePrice` = lezioni × tariffa, `packagePricing` = prezzo del pacchetto con sconto; `PackagePrice` è l'unico componente che li mostra; `src/lib/theme.ts` – tema → variabili CSS (condiviso server/client), `theme-server.ts` lettura/salvataggio
+- `src/lib/single-lessons.ts` – lezioni singole: un pacchetto `kind = "SINGLE"` per durata del tariffario, sincronizzato al salvataggio; le liste dei pacchetti filtrano `kind: "PACKAGE"`
 - `src/lib/billing.ts` – dati di fatturazione: schema zod, controllo CF/P.IVA, righe per fattura; i campi del modulo profilo hanno prefisso `b_`
 - `src/lib/media.ts` + `src/app/api/admin/media` + `src/app/media/[name]` – immagini caricate (tipo riconosciuto dai byte, SVG escluso); `public/presets/` – immagini d'esempio
 - `src/lib/availability.ts` – slot liberi, lezioni di gruppo a cui unirsi, pulizia delle lezioni vuote; `src/lib/packages.ts` – regole del pacchetto e fasce orarie (`timeWindowsJson`)
