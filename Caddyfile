@@ -1,0 +1,4 @@
+# Sostituisci con il tuo dominio (il DNS deve puntare al server)
+corsi.example.com {
+	reverse_proxy app:3000
+}

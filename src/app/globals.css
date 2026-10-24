@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Le variabili --* arrivano dal tema (src/lib/theme.ts), iniettate dal layout. */
+@layer base {
+  html {
+    font-size: var(--base-size, 16px);
+  }
+  body {
+    font-family: var(--font-body);
+    background-color: rgb(var(--page-bg));
+    overflow-x: clip;
+  }
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    accent-color: rgb(var(--brand-600));
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: var(--heading-weight) !important;
+    color: rgb(var(--heading));
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-[var(--btn-radius)] px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .input {
+    @apply w-full rounded-[var(--input-radius)] border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  .input-error {
+    @apply border-red-500 ring-2 ring-red-100;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-700;
+  }
+  .card {
+    @apply rounded-[var(--radius)] border-[length:var(--card-border)] border-slate-200 bg-[rgb(var(--surface))] p-5 shadow-[var(--shadow-card)];
+  }
+  .btn-accent {
+    @apply btn bg-accent-500 text-slate-950 hover:bg-accent-400;
+  }
+  .badge {
+    @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}

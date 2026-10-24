@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vitest *)",
+      "Bash(npx next *)",
+      "PowerShell(npm run *)",
+      "PowerShell(npm test*)",
+      "PowerShell(npx prisma *)",
+      "PowerShell(npx tsc *)",
+      "PowerShell(npx vitest *)",
+      "PowerShell(npx next *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./data/**)"
+    ]
+  }
+}

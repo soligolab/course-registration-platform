@@ -1,0 +1,108 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String           @id @default(cuid())
+  email             String           @unique
+  role              String           @default("CLIENT") // ADMIN | CLIENT
+  locale            String           @default("it")
+  firstName         String?
+  lastName          String?
+  age               Int?
+  phone             String?
+  guardianName      String?
+  guardianConsentAt DateTime?
+  emailVerifiedAt   DateTime?
+  privacyAcceptedAt DateTime?
+  privacyVersion    String?
+  billingJson       String? // dati di fatturazione (JSON, vedi src/lib/billing.ts)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  sessions          Session[]
+  requests          BookingRequest[]
+}
+
+model OtpCode {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  ip         String?
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Package {
+  id                String           @id @default(cuid())
+  nameIt            String
+  nameEn            String
+  descriptionIt     String           @default("")
+  descriptionEn     String           @default("")
+  totalSlots        Int // unità da 30 minuti
+  minLessonSlots    Int
+  maxLessonSlots    Int
+  lessonStepSlots   Int              @default(1) // ogni lezione dura un multiplo di questo blocco
+  validityDays      Int
+  maxLessonsPerWeek Int?
+  active            Boolean          @default(true)
+  sortOrder         Int              @default(0)
+  imageUrl          String           @default("") // /presets/… o /media/…
+  createdAt         DateTime         @default(now())
+  requests          BookingRequest[]
+}
+
+model AvailabilitySlot {
+  id      String   @id @default(cuid())
+  startAt DateTime @unique
+}
+
+model BookingRequest {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packageId  String
+  package    Package      @relation(fields: [packageId], references: [id])
+  status     String       @default("PENDING") // PENDING | CONFIRMED | REJECTED | CANCELLED
+  userNotes  String       @default("")
+  adminNotes String       @default("")
+  // copia degli slot richiesti (JSON di ISO string), conservata anche dopo rifiuto/annullamento
+  slotsJson  String
+  // prezzo indicativo al momento della richiesta (centesimi); null se il tariffario non era fissato
+  priceCents Int?
+  // copia dei dati di fatturazione al momento della richiesta
+  billingJson String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  slots      BookedSlot[]
+}
+
+model BookedSlot {
+  id        String         @id @default(cuid())
+  requestId String
+  request   BookingRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  startAt   DateTime       @unique
+}
+
+model Setting {
+  key   String @id
+  value String
+}

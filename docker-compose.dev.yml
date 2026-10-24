@@ -1,0 +1,23 @@
+# Sviluppo/test locale: app + Mailpit per vedere le email su http://localhost:8025
+services:
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: file:/app/data/app.db
+      APP_URL: http://localhost:3000
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURE: "false"
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mailpit
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "8025:8025"
+      - "1025:1025"
